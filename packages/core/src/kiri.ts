@@ -1,6 +1,7 @@
 import type {
   ExportOptions,
   ExportResult,
+  Filters,
   Flip,
   FrameShape,
   KiriEventCallback,
@@ -8,8 +9,11 @@ import type {
   KiriOptions,
   KiriState,
   LoadOptions,
+  UploadOptions,
+  Uploader,
 } from "./types";
 import {
+  applyFilters,
   applyTransform,
   createStage,
   setFrameSize as setStageFrameSize,
@@ -26,6 +30,8 @@ import {
 } from "./gestures";
 import { orientationToTransform, readExifOrientation } from "./exif";
 import { exportCrop } from "./export";
+import { DEFAULT_FILTERS, mergeFilters } from "./filters";
+import { uploadBlob } from "./upload";
 
 const DEFAULT_FRAME_SIZE = 200;
 const MIN_FRAME_SIZE = 20;
@@ -39,6 +45,7 @@ interface ResolvedOptions {
   resizableFrame: boolean;
   mouseWheelZoom: boolean | "ctrl";
   useExifOrientation: boolean;
+  uploader: Uploader | undefined;
 }
 
 export class Kiri {
@@ -53,6 +60,7 @@ export class Kiri {
     offset: { x: 0, y: 0 },
     rotation: 0,
     flip: { horizontal: false, vertical: false },
+    filters: DEFAULT_FILTERS,
   };
   private listeners: Record<KiriEventName, KiriEventCallback[]> = { change: [] };
 
@@ -71,7 +79,9 @@ export class Kiri {
       resizableFrame: options.resizableFrame ?? false,
       mouseWheelZoom: options.mouseWheelZoom ?? true,
       useExifOrientation: options.useExifOrientation ?? true,
+      uploader: options.uploader,
     };
+    this.state.filters = mergeFilters(DEFAULT_FILTERS, options.filters ?? {});
 
     this.stage = createStage(
       this.container,
@@ -79,6 +89,7 @@ export class Kiri {
       this.opts.frame.width,
       this.opts.frame.height
     );
+    applyFilters(this.stage.imgEl, this.state.filters);
 
     this.gestureHandle = attachGestures(
       this.stage.stageEl,
@@ -143,6 +154,7 @@ export class Kiri {
       offset,
       rotation,
       flip: { horizontal: flipHorizontal, vertical: flipVertical },
+      filters: this.state.filters,
     });
   }
 
@@ -152,6 +164,7 @@ export class Kiri {
       offset: { ...this.state.offset },
       rotation: this.state.rotation,
       flip: { ...this.state.flip },
+      filters: { ...this.state.filters },
     };
   }
 
@@ -207,8 +220,18 @@ export class Kiri {
     this.commitState({ ...this.state, offset });
   }
 
+  setFilters(filters: Partial<Filters>): void {
+    this.commitState({ ...this.state, filters: mergeFilters(this.state.filters, filters) });
+  }
+
   async export(options: ExportOptions = {}): Promise<ExportResult> {
     return exportCrop(this.stage.imgEl, this.state, this.getFrameSize(), options);
+  }
+
+  async upload(url: string, options: UploadOptions = {}): Promise<unknown> {
+    const blob = (await this.export({ ...options, type: "blob" })) as Blob;
+    const uploader = options.uploader ?? this.opts.uploader ?? uploadBlob;
+    return uploader(blob, { ...options, url });
   }
 
   on(event: KiriEventName, callback: KiriEventCallback): void {
@@ -235,6 +258,7 @@ export class Kiri {
     const scale =
       computeCoverScale(this.naturalSize, this.getFrameSize(), next.rotation) * next.zoom;
     applyTransform(this.stage.imageLayerEl, next, scale);
+    applyFilters(this.stage.imgEl, next.filters);
     for (const cb of this.listeners.change) cb(this.getState());
   }
 

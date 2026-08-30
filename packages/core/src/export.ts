@@ -1,5 +1,6 @@
 import type { ExportOptions, ExportResult, KiriState, Offset } from "./types";
 import { computeCoverScale, effectiveRenderedSize, type Size } from "./gestures";
+import { buildFilterString } from "./filters";
 
 /**
  * Top-left corner of the frame, in the local pixel space of the rendered
@@ -43,6 +44,9 @@ export function renderCropToCanvas(
   // stage.ts's transform order) so rotation happens in "already mirrored"
   // space, consistent with what the user sees on screen.
   sctx.scale(scale * (state.flip.horizontal ? -1 : 1), scale * (state.flip.vertical ? -1 : 1));
+  // Same CSS filter string as the live preview (see stage.ts's applyFilters),
+  // so the browser's own filter implementation guarantees they match exactly.
+  sctx.filter = buildFilterString(state.filters);
   sctx.drawImage(img, -natural.width / 2, -natural.height / 2, natural.width, natural.height);
 
   const { left: frameLeft, top: frameTop } = computeFrameSourceRect(

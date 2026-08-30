@@ -15,6 +15,19 @@ export interface Flip {
   vertical: boolean;
 }
 
+export interface Filters {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  grayscale: boolean;
+  sepia: boolean;
+}
+
+export type Uploader = (
+  blob: Blob,
+  options: UploadOptions & { url: string }
+) => Promise<unknown>;
+
 export interface KiriOptions {
   frame?: {
     shape?: FrameShape;
@@ -28,6 +41,8 @@ export interface KiriOptions {
   resizableFrame?: boolean;
   mouseWheelZoom?: boolean | "ctrl";
   useExifOrientation?: boolean;
+  filters?: Partial<Filters>;
+  uploader?: Uploader;
 }
 
 export interface KiriState {
@@ -35,6 +50,7 @@ export interface KiriState {
   offset: Offset;
   rotation: number;
   flip: Flip;
+  filters: Filters;
 }
 
 export interface LoadOptions {
@@ -53,6 +69,14 @@ export interface ExportOptions {
   quality?: number;
   width?: number;
   height?: number;
+}
+
+export interface UploadOptions extends ExportOptions {
+  fieldName?: string;
+  fileName?: string;
+  extraFields?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  uploader?: Uploader;
 }
 
 export type ExportResult = string | Blob | HTMLCanvasElement;

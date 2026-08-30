@@ -5,8 +5,11 @@ Guidance for Claude Code when working in this repository.
 ## Project
 
 Kiri — a dependency-free TypeScript library for interactive image cropping in the
-browser (drag/zoom/rotate an image inside a fixed frame, export the crop as an
-image). See `design.md` for the full design doc, public API shape, and rationale.
+browser (drag/zoom/rotate/flip an image inside a fixed frame, apply filters,
+export/upload the crop). A monorepo: the core library (`packages/core`, published
+as `kiri`) plus thin React/Vue wrapper components (`packages/react` → `kiri-react`,
+`packages/vue` → `kiri-vue`) that reuse the core's logic rather than duplicating
+it. See `design.md` for the full design doc, public API shape, and rationale.
 
 This is an original implementation. Do not reference, name-check, or copy naming
 conventions from any other cropping library, in code, comments, docs, or commit
@@ -14,26 +17,44 @@ messages.
 
 ## Status
 
-v1 (full parity) is implemented: `src/kiri.ts` (public API), `stage.ts` (DOM),
-`gestures.ts` (drag/zoom/pinch/clamping math), `exif.ts`, `export.ts`, a demo at
-`demo/`, and a Vitest suite in `test/`. Treat `design.md` as the source of truth
-for the intended API; update it alongside any design decisions that change.
+v1 (full parity) plus the extended feature set is implemented: filters
+(brightness/contrast/saturation/grayscale/sepia), `upload()`, `KiriBatch`
+(multi-image queue), and the React/Vue wrapper packages. See `design.md`'s
+"Extended features" section for each API. Treat `design.md` as the source of
+truth for the intended API; update it alongside any design decisions that change.
 
 ## Stack & tooling
 
-- TypeScript, zero runtime dependencies, framework-agnostic (attaches to a plain
-  DOM element).
-- Build: Vite in library mode (`vite.config.ts`) with `vite-plugin-dts` for type
-  declarations. Output: ESM + UMD/IIFE, npm-publishable from `dist/`.
-- Demo page: `demo/index.html`, run via `vite dev`, imports library source directly.
-- Tests: Vitest.
+- TypeScript, zero runtime dependencies in core, framework-agnostic (attaches to
+  a plain DOM element); the wrapper packages depend only on their own framework
+  as a peer dependency plus `kiri` itself.
+- npm workspaces (`workspaces: ["packages/*"]` at the root) — one lockfile,
+  `kiri-react`/`kiri-vue`'s `"kiri"` dependency resolves to `packages/core` via
+  the workspace, not the npm registry.
+- Build: Vite in library mode per package (`vite.config.ts`), `vite-plugin-dts`
+  for type declarations. Core outputs ESM + UMD; wrappers output ESM + CJS with
+  `react`/`react-dom`/`vue`/`kiri` externalized (peer deps, not bundled).
+  Source maps are on (`build.sourcemap: true`) for the minified output.
+- Styling: `packages/core/src/kiri.css` is a real, separate stylesheet (not
+  JS-injected) — consumers `import "kiri/kiri.css"`. The demo imports it from
+  `main.ts` (not a `<link>` tag — Vite's dev root is `demo/`, so a relative
+  `<link href="../src/kiri.css">` 404s; a JS `import` resolves correctly
+  against the filesystem regardless of dev root).
+- Demo page: `packages/core/demo/index.html`, run via `vite dev`, imports
+  library source directly.
+- Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
+  + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
+  `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.
+  `kiri-vue`'s suite mounts via Vue's own `createApp().mount()` — neither
+  needs an extra testing-library dependency.
 - Package manager: npm.
 
 ## Commands
 
-- `npm run dev` — Vite dev server serving `demo/index.html`
-- `npm run build` — library build to `dist/` (ESM + UMD + `.d.ts`)
-- `npm test` — Vitest
+- `npm run dev` (root) — Vite dev server for the core demo
+- `npm run build` (root) — builds all three packages (`--workspaces --if-present`)
+- `npm test` (root) — runs all three packages' Vitest suites
+- Per-package: `npm run <script> --workspace=kiri` (or `kiri-react`/`kiri-vue`)
 
 ## API conventions
 
@@ -50,10 +71,14 @@ Kiri's API is deliberately simpler/more literal than prior art in this space:
   `getState()`, not scattered getters.
 
 When implementing new public API surface, check `design.md`'s API section first —
-keep the two in sync if you deviate.
+keep the two in sync if you deviate. The React/Vue wrappers are thin
+pass-throughs — new core methods should be added to their prop/imperative-method
+surface too (`packages/react/src/KiriCropper.tsx`,
+`packages/vue/src/KiriCropper.ts`), not reimplemented there.
 
-## Non-goals (v1)
+## Non-goals
 
-Do not add: server/upload integration, image filters/effects, multi-image/batch
-cropping, or framework-specific wrapper components (React/Vue). See `design.md`
-for full scope.
+No remaining deliberate non-goals — the original v1 non-goals list (upload,
+filters, batch, wrappers) has all been implemented. Still explicitly out of
+scope unless asked: a `KiriBatch` gallery/thumbnail UI (it's a queue manager
+only), and actually publishing the packages to npm.

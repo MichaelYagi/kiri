@@ -59,6 +59,7 @@ cropper.rotate(90); // relative, degrees, snapped to 90° steps
 cropper.flipHorizontal(); // toggles
 cropper.flipVertical(); // toggles
 cropper.setFrameSize(300, 300); // if resizableFrame is true
+cropper.setFilters({ brightness: 1.2, contrast: 1, saturation: 1, grayscale: false, sepia: false });
 
 // Export
 const blob = await cropper.export({
@@ -69,8 +70,12 @@ const blob = await cropper.export({
   height: 400,
 });
 
+// Upload (generic FormData/fetch helper, or a custom uploader — see Extended
+// features below)
+const response = await cropper.upload("https://example.com/upload");
+
 // Events
-cropper.on("change", (state) => { /* fires on drag/zoom/rotate */ });
+cropper.on("change", (state) => { /* fires on drag/zoom/rotate/flip/filters */ });
 
 cropper.destroy();
 ```
@@ -98,48 +103,132 @@ cropper.destroy();
   (`enforceBoundary`-equivalent behavior, always on)
 - Export to base64 / Blob / Canvas, JPEG / PNG / WebP, custom output dimensions
 
-## Non-goals (v1)
+## Styling
 
-- Built-in upload/server integration
-- Filters/effects (brightness, contrast, etc.)
-- Multi-image / batch cropping
-- Framework-specific wrapper packages (React/Vue components) — may come later as
-  separate packages built on the core
+Kiri ships a real, separate stylesheet (`kiri.css`) rather than injecting a
+`<style>` tag at runtime — standard, CSP-safe, and easy for a consumer to
+override or theme. Consumers import it explicitly: `import "kiri/kiri.css"`
+(bundler) or a `<link>` to `node_modules/kiri/dist/kiri.css` directly.
 
-## Project structure
+## Extended features
+
+These were originally listed as v1 non-goals; all four are now implemented.
+
+### Filters
+
+`Filters = { brightness, contrast, saturation: number; grayscale, sepia: boolean }`
+(defaults `1, 1, 1, false, false`). Set via `KiriOptions.filters` (initial) or
+`cropper.setFilters(partial)` (merges, clamps numeric values to `>= 0`).
+
+Both the live preview and the canvas export apply the *same* CSS `filter`
+string (`brightness() contrast() saturate() grayscale() sepia()`) — the
+preview via `img.style.filter`, the export via `canvasCtx.filter` before
+`drawImage`. Reusing the browser's own filter implementation for both means
+they're guaranteed to match pixel-for-pixel, with no hand-rolled
+brightness/contrast/saturation pixel math to get subtly wrong.
+
+### Upload
+
+```ts
+cropper.upload(url, options?); // exports the crop, then uploads it
+```
+
+Default behavior: exports as a blob, builds a `FormData` (configurable
+`fieldName`/`fileName`/`extraFields`), POSTs via `fetch` (configurable
+`fetchOptions`). For a custom protocol (presigned URLs, GraphQL, etc.), pass
+`uploader` either per-instance (`KiriOptions.uploader`) or per-call
+(`UploadOptions.uploader`) — callers keep calling the same `cropper.upload(url,
+options)` regardless of backend.
+
+### Batch cropping
+
+`KiriBatch` steps a single shared `Kiri` instance through a queue of images —
+one DOM/stage instance reused across images, not one instance per image, so
+every existing interaction (drag/zoom/rotate/flip/filters) needs no changes:
+
+```ts
+const batch = new KiriBatch(container, options, [{ source: fileA }, { source: fileB }]);
+while (await batch.next()) {
+  // batch.cropper is now showing batch.current().source — let the user adjust it
+  await batch.capture(); // export + store this item's crop
+}
+batch.results(); // all captures, in item order
+```
+
+### Framework wrappers
+
+Thin pass-through components — no cropping logic duplicated, they just own
+the container ref/mount lifecycle and forward to a `Kiri` instance:
+
+- `kiri-react`: `<KiriCropper ref={...} onChange={...} {...KiriOptions} />`,
+  imperative methods (`load/getState/setZoom/rotate/flipHorizontal/
+  flipVertical/setFrameSize/setFilters/export/upload`) exposed via
+  `useImperativeHandle`.
+- `kiri-vue`: same prop/method surface, exposed via Vue's `expose()`, a plain
+  render-function component (`defineComponent` + `h()`) rather than an SFC —
+  no `.vue` compiler plugin needed in the build.
+
+Both capture constructor options once on mount; changing them later goes
+through the exposed imperative methods, not through re-rendering with new
+props (matches the core's own model — options are constructor-time, state
+mutations are explicit method calls).
+
+## Project structure (monorepo)
 
 ```
 kiri/
-├── src/
-│   ├── kiri.ts          # public Kiri class
-│   ├── stage.ts         # stage/frame DOM + layout
-│   ├── gestures.ts       # drag/wheel/pinch handling
-│   ├── exif.ts            # EXIF orientation parsing
-│   ├── export.ts          # canvas export logic
-│   └── types.ts
-├── demo/
-│   ├── index.html
-│   └── main.ts
-├── test/
-├── design.md
-├── CLAUDE.md
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
+├── package.json           # root: private, npm workspaces ["packages/*"]
+├── design.md, CLAUDE.md, README.md
+└── packages/
+    ├── core/                # published as "kiri"
+    │   ├── src/
+    │   │   ├── index.ts       # public entry: re-exports Kiri, KiriBatch, types
+    │   │   ├── kiri.ts        # public Kiri class
+    │   │   ├── batch.ts       # KiriBatch
+    │   │   ├── stage.ts       # stage/frame DOM + layout
+    │   │   ├── gestures.ts     # drag/wheel/pinch handling + clamping math
+    │   │   ├── exif.ts          # EXIF orientation parsing
+    │   │   ├── export.ts        # canvas export logic
+    │   │   ├── filters.ts       # CSS-filter-string building/merging
+    │   │   ├── upload.ts        # default FormData/fetch uploader
+    │   │   ├── kiri.css        # real stylesheet, not JS-injected
+    │   │   └── types.ts
+    │   ├── demo/
+    │   ├── test/
+    │   ├── package.json, tsconfig.json, vite.config.ts
+    ├── react/               # published as "kiri-react"
+    │   ├── src/KiriCropper.tsx, src/index.ts
+    │   ├── test/
+    │   └── package.json, tsconfig.json, vite.config.ts
+    └── vue/                  # published as "kiri-vue"
+        ├── src/KiriCropper.ts, src/index.ts
+        ├── test/
+        └── package.json, tsconfig.json, vite.config.ts
 ```
 
 ## Tooling
 
-- **Build**: Vite in library mode, producing ESM + a UMD/IIFE browser build, with
-  `vite-plugin-dts` generating `.d.ts` declarations — npm-publishable output in
-  `dist/`.
-- **Demo**: served via `vite dev` against `demo/index.html`, importing the library
-  source directly (no separate build step needed during development).
-- **Package manager**: npm.
-- **Tests**: Vitest.
+- **Build**: Vite in library mode per package, producing ESM + a CJS/UMD
+  build, with `vite-plugin-dts` generating `.d.ts` declarations —
+  npm-publishable output in each package's `dist/`. `kiri-react` uses
+  `@vitejs/plugin-react`; `kiri-vue` needs no SFC plugin (render-function
+  component, not `.vue` files).
+- **Demo**: `packages/core/demo`, served via `vite dev`, imports the library
+  source (`src/index.ts`, `src/kiri.css`) directly — no build step needed
+  during development.
+- **Package manager**: npm, with npm workspaces (`workspaces: ["packages/*"]`
+  in the root `package.json`) — one lockfile at the root, `kiri-react`/
+  `kiri-vue`'s `"kiri"` dependency resolves to the local `packages/core` via
+  the workspace.
+- **Tests**: Vitest per package. `kiri-react` mounts via `react-dom/client`
+  `createRoot` + `act` from `react`; `kiri-vue` mounts via Vue's own
+  `createApp().mount()` — neither wrapper's test suite needs an extra testing
+  library beyond the framework itself.
 
 ## Open questions / future work
 
 - Touch/pinch gesture precision on mobile — needs real-device testing.
-- Whether to ship a default minimal CSS theme or leave all styling to the consumer.
-- Possible React wrapper package once the core API stabilizes.
+- `KiriBatch` currently has no built-in gallery/thumbnail UI — it's a queue
+  manager only; a consumer builds their own UI around `next()`/`current()`.
+- Publishing to npm hasn't happened yet — package names (`kiri`, `kiri-react`,
+  `kiri-vue`) are reserved by convention here, not yet claimed on the registry.

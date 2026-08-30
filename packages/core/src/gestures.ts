@@ -100,6 +100,7 @@ export function attachGestures(
       offset,
       rotation: normalizeRotation(next.rotation),
       flip: next.flip,
+      filters: next.filters,
     });
   }
 

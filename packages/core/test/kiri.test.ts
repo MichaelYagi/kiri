@@ -64,6 +64,27 @@ describe("Kiri", () => {
     expect(cropper.getState().flip).toEqual({ horizontal: false, vertical: false });
   });
 
+  it("merges partial filter updates and applies them to the image element's CSS filter", () => {
+    const cropper = new Kiri(container);
+    cropper.setFilters({ brightness: 1.4, grayscale: true });
+
+    expect(cropper.getState().filters).toEqual({
+      brightness: 1.4,
+      contrast: 1,
+      saturation: 1,
+      grayscale: true,
+      sepia: false,
+    });
+
+    const img = container.querySelector("img") as HTMLImageElement;
+    expect(img.style.filter).toBe("brightness(1.4) contrast(1) saturate(1) grayscale(1)");
+  });
+
+  it("accepts initial filters via options", () => {
+    const cropper = new Kiri(container, { filters: { sepia: true } });
+    expect(cropper.getState().filters.sepia).toBe(true);
+  });
+
   it("emits a change event on state updates", () => {
     const cropper = new Kiri(container, { minZoom: 1, maxZoom: 4 });
     const states: number[] = [];
