@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kiri demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        color: #222;
+      }
+      #kiri-container {
+        width: 100%;
+        height: 360px;
+        border: 1px solid #ccc;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        margin: 1rem 0;
+      }
+      .controls label {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      #output {
+        margin-top: 1rem;
+      }
+      #output img {
+        max-width: 100%;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kiri demo</h1>
+    <input id="file-input" type="file" accept="image/*" />
+
+    <div id="kiri-container"></div>
+
+    <div class="controls">
+      <label>
+        Zoom
+        <input id="zoom" type="range" min="1" max="4" step="0.01" value="1" />
+      </label>
+      <button id="rotate">Rotate 90°</button>
+      <button id="export">Export crop</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

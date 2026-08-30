@@ -14,9 +14,10 @@ messages.
 
 ## Status
 
-Early scaffolding stage — implementation has not started yet. Treat `design.md` as
-the source of truth for intended structure/API until code exists; update it
-alongside any design decisions that change during implementation.
+v1 (full parity) is implemented: `src/kiri.ts` (public API), `stage.ts` (DOM),
+`gestures.ts` (drag/zoom/pinch/clamping math), `exif.ts`, `export.ts`, a demo at
+`demo/`, and a Vitest suite in `test/`. Treat `design.md` as the source of truth
+for the intended API; update it alongside any design decisions that change.
 
 ## Stack & tooling
 
@@ -28,7 +29,7 @@ alongside any design decisions that change during implementation.
 - Tests: Vitest.
 - Package manager: npm.
 
-## Commands (once scaffolded)
+## Commands
 
 - `npm run dev` — Vite dev server serving `demo/index.html`
 - `npm run build` — library build to `dist/` (ESM + UMD + `.d.ts`)
