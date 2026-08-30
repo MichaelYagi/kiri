@@ -39,7 +39,10 @@ export function renderCropToCanvas(
 
   sctx.translate(sourceCanvas.width / 2, sourceCanvas.height / 2);
   sctx.rotate((state.rotation * Math.PI) / 180);
-  sctx.scale(scale, scale);
+  // Flip is folded into scale's sign, applied before rotate (matches
+  // stage.ts's transform order) so rotation happens in "already mirrored"
+  // space, consistent with what the user sees on screen.
+  sctx.scale(scale * (state.flip.horizontal ? -1 : 1), scale * (state.flip.vertical ? -1 : 1));
   sctx.drawImage(img, -natural.width / 2, -natural.height / 2, natural.width, natural.height);
 
   const { left: frameLeft, top: frameTop } = computeFrameSourceRect(

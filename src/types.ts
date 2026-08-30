@@ -10,6 +10,11 @@ export interface Offset {
   y: number;
 }
 
+export interface Flip {
+  horizontal: boolean;
+  vertical: boolean;
+}
+
 export interface KiriOptions {
   frame?: {
     shape?: FrameShape;
@@ -19,6 +24,7 @@ export interface KiriOptions {
   minZoom?: number;
   maxZoom?: number;
   rotatable?: boolean;
+  flippable?: boolean;
   resizableFrame?: boolean;
   mouseWheelZoom?: boolean | "ctrl";
   useExifOrientation?: boolean;
@@ -28,12 +34,14 @@ export interface KiriState {
   zoom: number;
   offset: Offset;
   rotation: number;
+  flip: Flip;
 }
 
 export interface LoadOptions {
   zoom?: number;
   offset?: Offset;
   rotation?: number;
+  flip?: Partial<Flip>;
 }
 
 export type ExportType = "base64" | "blob" | "canvas";

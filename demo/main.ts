@@ -4,6 +4,8 @@ const container = document.getElementById("kiri-container") as HTMLElement;
 const fileInput = document.getElementById("file-input") as HTMLInputElement;
 const zoomSlider = document.getElementById("zoom") as HTMLInputElement;
 const rotateButton = document.getElementById("rotate") as HTMLButtonElement;
+const flipHButton = document.getElementById("flip-h") as HTMLButtonElement;
+const flipVButton = document.getElementById("flip-v") as HTMLButtonElement;
 const exportButton = document.getElementById("export") as HTMLButtonElement;
 const output = document.getElementById("output") as HTMLElement;
 
@@ -33,6 +35,14 @@ zoomSlider.addEventListener("input", () => {
 
 rotateButton.addEventListener("click", () => {
   cropper.rotate(90);
+});
+
+flipHButton.addEventListener("click", () => {
+  cropper.flipHorizontal();
+});
+
+flipVButton.addEventListener("click", () => {
+  cropper.flipVertical();
 });
 
 exportButton.addEventListener("click", async () => {

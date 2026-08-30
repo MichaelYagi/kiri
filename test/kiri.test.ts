@@ -43,6 +43,27 @@ describe("Kiri", () => {
     expect(cropper.getState().rotation).toBe(0);
   });
 
+  it("toggles horizontal and vertical flip independently", () => {
+    const cropper = new Kiri(container);
+    expect(cropper.getState().flip).toEqual({ horizontal: false, vertical: false });
+
+    cropper.flipHorizontal();
+    expect(cropper.getState().flip).toEqual({ horizontal: true, vertical: false });
+
+    cropper.flipVertical();
+    expect(cropper.getState().flip).toEqual({ horizontal: true, vertical: true });
+
+    cropper.flipHorizontal();
+    expect(cropper.getState().flip).toEqual({ horizontal: false, vertical: true });
+  });
+
+  it("ignores flip methods when flippable is false", () => {
+    const cropper = new Kiri(container, { flippable: false });
+    cropper.flipHorizontal();
+    cropper.flipVertical();
+    expect(cropper.getState().flip).toEqual({ horizontal: false, vertical: false });
+  });
+
   it("emits a change event on state updates", () => {
     const cropper = new Kiri(container, { minZoom: 1, maxZoom: 4 });
     const states: number[] = [];

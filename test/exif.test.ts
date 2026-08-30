@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { orientationToRotation, readExifOrientation } from "../src/exif";
+import { orientationToTransform, readExifOrientation } from "../src/exif";
 
 /**
  * Builds a minimal synthetic JPEG byte buffer containing just enough of an
@@ -56,11 +56,15 @@ describe("readExifOrientation", () => {
   });
 });
 
-describe("orientationToRotation", () => {
-  it("maps orientation values to their closest rotation-only equivalent", () => {
-    expect(orientationToRotation(1)).toBe(0);
-    expect(orientationToRotation(3)).toBe(180);
-    expect(orientationToRotation(6)).toBe(90);
-    expect(orientationToRotation(8)).toBe(270);
+describe("orientationToTransform", () => {
+  it("maps orientation values to their rotation + horizontal-flip pair", () => {
+    expect(orientationToTransform(1)).toEqual({ rotation: 0, flipHorizontal: false });
+    expect(orientationToTransform(2)).toEqual({ rotation: 0, flipHorizontal: true });
+    expect(orientationToTransform(3)).toEqual({ rotation: 180, flipHorizontal: false });
+    expect(orientationToTransform(4)).toEqual({ rotation: 180, flipHorizontal: true });
+    expect(orientationToTransform(5)).toEqual({ rotation: 90, flipHorizontal: true });
+    expect(orientationToTransform(6)).toEqual({ rotation: 90, flipHorizontal: false });
+    expect(orientationToTransform(7)).toEqual({ rotation: 270, flipHorizontal: true });
+    expect(orientationToTransform(8)).toEqual({ rotation: 270, flipHorizontal: false });
   });
 });

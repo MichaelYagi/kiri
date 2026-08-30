@@ -114,10 +114,14 @@ export function applyTransform(
 ): void {
   // translate(-50%,-50%) centers the layer's own center at the stage center;
   // the pixel translate shifts it by the (rotation/scale-independent) offset;
-  // rotate/scale then apply around the layer's own center (default transform-origin).
+  // rotate then scale (with flip folded into scale's sign) apply around the
+  // layer's own center (default transform-origin), flip first/innermost so a
+  // mirrored image still rotates the way the user expects.
+  const scaleX = renderedScale * (state.flip.horizontal ? -1 : 1);
+  const scaleY = renderedScale * (state.flip.vertical ? -1 : 1);
   imageLayerEl.style.transform =
     `translate(-50%, -50%) ` +
     `translate(${state.offset.x}px, ${state.offset.y}px) ` +
     `rotate(${state.rotation}deg) ` +
-    `scale(${renderedScale})`;
+    `scale(${scaleX}, ${scaleY})`;
 }

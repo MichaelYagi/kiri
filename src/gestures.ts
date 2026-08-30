@@ -95,7 +95,12 @@ export function attachGestures(
       zoom
     );
     const offset = clampOffset(next.offset, rendered, callbacks.getFrameSize());
-    callbacks.setState({ zoom, offset, rotation: normalizeRotation(next.rotation) });
+    callbacks.setState({
+      zoom,
+      offset,
+      rotation: normalizeRotation(next.rotation),
+      flip: next.flip,
+    });
   }
 
   function onPointerDown(e: PointerEvent): void {

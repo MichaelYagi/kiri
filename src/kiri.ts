@@ -1,6 +1,7 @@
 import type {
   ExportOptions,
   ExportResult,
+  Flip,
   FrameShape,
   KiriEventCallback,
   KiriEventName,
@@ -23,7 +24,7 @@ import {
   normalizeRotation,
   type Size,
 } from "./gestures";
-import { orientationToRotation, readExifOrientation } from "./exif";
+import { orientationToTransform, readExifOrientation } from "./exif";
 import { exportCrop } from "./export";
 
 const DEFAULT_FRAME_SIZE = 200;
@@ -34,6 +35,7 @@ interface ResolvedOptions {
   minZoom: number;
   maxZoom: number;
   rotatable: boolean;
+  flippable: boolean;
   resizableFrame: boolean;
   mouseWheelZoom: boolean | "ctrl";
   useExifOrientation: boolean;
@@ -46,7 +48,12 @@ export class Kiri {
   private readonly gestureHandle: { destroy: () => void };
   private resizeHandle: { destroy: () => void } | null = null;
   private naturalSize: Size = { width: 0, height: 0 };
-  private state: KiriState = { zoom: 1, offset: { x: 0, y: 0 }, rotation: 0 };
+  private state: KiriState = {
+    zoom: 1,
+    offset: { x: 0, y: 0 },
+    rotation: 0,
+    flip: { horizontal: false, vertical: false },
+  };
   private listeners: Record<KiriEventName, KiriEventCallback[]> = { change: [] };
 
   constructor(container: HTMLElement, options: KiriOptions = {}) {
@@ -60,6 +67,7 @@ export class Kiri {
       minZoom: options.minZoom ?? 1,
       maxZoom: options.maxZoom ?? 4,
       rotatable: options.rotatable ?? true,
+      flippable: options.flippable ?? true,
       resizableFrame: options.resizableFrame ?? false,
       mouseWheelZoom: options.mouseWheelZoom ?? true,
       useExifOrientation: options.useExifOrientation ?? true,
@@ -89,6 +97,8 @@ export class Kiri {
 
   async load(source: File | Blob | string, loadOptions: LoadOptions = {}): Promise<void> {
     let rotation = normalizeRotation(loadOptions.rotation ?? 0);
+    let flipHorizontal = loadOptions.flip?.horizontal ?? false;
+    const flipVertical = loadOptions.flip?.vertical ?? false;
     let objectUrl: string | null = null;
     let url: string;
 
@@ -98,7 +108,10 @@ export class Kiri {
       if (this.opts.useExifOrientation) {
         const buffer = await source.arrayBuffer();
         const orientation = readExifOrientation(buffer);
-        rotation = normalizeRotation(rotation + orientationToRotation(orientation));
+        const exifTransform = orientationToTransform(orientation);
+        rotation = normalizeRotation(rotation + exifTransform.rotation);
+        // XOR: two horizontal flips (EXIF + a requested one) cancel out.
+        flipHorizontal = flipHorizontal !== exifTransform.flipHorizontal;
       }
       objectUrl = URL.createObjectURL(source);
       url = objectUrl;
@@ -125,7 +138,12 @@ export class Kiri {
     const rendered = effectiveRenderedSize(this.naturalSize, this.getFrameSize(), rotation, zoom);
     const offset = clampOffset(loadOptions.offset ?? { x: 0, y: 0 }, rendered, this.getFrameSize());
 
-    this.commitState({ zoom, offset, rotation });
+    this.commitState({
+      zoom,
+      offset,
+      rotation,
+      flip: { horizontal: flipHorizontal, vertical: flipVertical },
+    });
   }
 
   getState(): KiriState {
@@ -133,6 +151,7 @@ export class Kiri {
       zoom: this.state.zoom,
       offset: { ...this.state.offset },
       rotation: this.state.rotation,
+      flip: { ...this.state.flip },
     };
   }
 
@@ -160,6 +179,18 @@ export class Kiri {
     );
     const offset = clampOffset(this.state.offset, rendered, this.getFrameSize());
     this.commitState({ ...this.state, rotation, offset });
+  }
+
+  flipHorizontal(): void {
+    if (!this.opts.flippable) return;
+    const flip: Flip = { ...this.state.flip, horizontal: !this.state.flip.horizontal };
+    this.commitState({ ...this.state, flip });
+  }
+
+  flipVertical(): void {
+    if (!this.opts.flippable) return;
+    const flip: Flip = { ...this.state.flip, vertical: !this.state.flip.vertical };
+    this.commitState({ ...this.state, flip });
   }
 
   setFrameSize(width: number, height: number): void {

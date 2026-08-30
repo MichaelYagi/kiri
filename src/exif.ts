@@ -42,23 +42,35 @@ function readOrientationFromTiff(view: DataView, tiffStart: number): number {
   return 1;
 }
 
+export interface OrientationTransform {
+  rotation: number;
+  flipHorizontal: boolean;
+}
+
 /**
- * Maps an EXIF orientation value to a 90-degree rotation. Orientations that
- * also require mirroring (2, 4, 5, 7) are approximated by their closest
- * rotation-only equivalent, since Kiri does not support flipping in v1.
+ * Maps an EXIF orientation value to the rotation + horizontal-flip pair that
+ * normalizes it. A vertical flip is never needed on its own: orientation 4
+ * (mirror vertical) is expressed as rotate(180) + flip horizontal, which is
+ * mathematically equivalent and matches Kiri's transform order (flip is
+ * applied before rotation, so this composes correctly).
  */
-export function orientationToRotation(orientation: number): number {
+export function orientationToTransform(orientation: number): OrientationTransform {
   switch (orientation) {
-    case 6:
-    case 5:
-      return 90;
+    case 2:
+      return { rotation: 0, flipHorizontal: true };
     case 3:
+      return { rotation: 180, flipHorizontal: false };
     case 4:
-      return 180;
-    case 8:
+      return { rotation: 180, flipHorizontal: true };
+    case 5:
+      return { rotation: 90, flipHorizontal: true };
+    case 6:
+      return { rotation: 90, flipHorizontal: false };
     case 7:
-      return 270;
+      return { rotation: 270, flipHorizontal: true };
+    case 8:
+      return { rotation: 270, flipHorizontal: false };
     default:
-      return 0;
+      return { rotation: 0, flipHorizontal: false };
   }
 }

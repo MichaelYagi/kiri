@@ -56,6 +56,8 @@ cropper.getState(); // { zoom, offset: {x,y}, rotation }
 // Mutate programmatically
 cropper.setZoom(2);
 cropper.rotate(90); // relative, degrees, snapped to 90° steps
+cropper.flipHorizontal(); // toggles
+cropper.flipVertical(); // toggles
 cropper.setFrameSize(300, 300); // if resizableFrame is true
 
 // Export
@@ -89,8 +91,9 @@ cropper.destroy();
 - Drag to reposition image within the frame
 - Zoom via wheel, trackpad pinch, and an optional slider UI
 - Rotate in 90° increments
+- Flip horizontally/vertically (independent of rotation)
 - Optional resizable frame (drag handles)
-- Automatic EXIF orientation correction on load
+- Automatic EXIF orientation correction on load (rotation + horizontal flip)
 - Zoom is clamped so the image can never be smaller than the frame
   (`enforceBoundary`-equivalent behavior, always on)
 - Export to base64 / Blob / Canvas, JPEG / PNG / WebP, custom output dimensions
