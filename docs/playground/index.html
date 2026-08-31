@@ -16,6 +16,7 @@
   .pg-row input[type="number"] { width: 5rem; }
   .pg-preview { flex: 1; min-width: 280px; }
   #cropper { min-height: 240px; }
+  .pg-hint { margin: -0.5rem 0 0.6rem; font-size: 0.8rem; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -68,9 +69,17 @@
       <fieldset>
         <legend>Behavior</legend>
         <div class="pg-row"><label for="rotatable">rotatable</label><input id="rotatable" type="checkbox" checked /></div>
+        <p class="pg-hint">Enables the Rotate button in the preview panel →</p>
         <div class="pg-row"><label for="flippable">flippable</label><input id="flippable" type="checkbox" checked /></div>
+        <p class="pg-hint">Enables the Flip buttons in the preview panel →</p>
         <div class="pg-row"><label for="useExifOrientation">useExifOrientation</label><input id="useExifOrientation" type="checkbox" checked /></div>
+        <p class="pg-hint">Not a live action — only affects photos loaded via
+        the file input above (their embedded EXIF rotation/flip data). Try
+        uploading a JPEG straight from a phone camera with this on vs. off.</p>
         <div class="pg-row"><label for="autoSizeStage">autoSizeStage</label><input id="autoSizeStage" type="checkbox" checked /></div>
+        <p class="pg-hint">Not a live action either — it changes how the stage
+        is sized at construction time. Toggle it and watch the stage box
+        itself resize on rebuild (compare the JSON dump below too).</p>
       </fieldset>
 
       <fieldset>
@@ -85,10 +94,17 @@
 
     <div class="pg-preview">
       <div id="cropper"></div>
+      <div class="controls" id="live-actions">
+        <button id="rotate" type="button">Rotate 90°</button>
+        <button id="flip-h" type="button">Flip horizontal</button>
+        <button id="flip-v" type="button">Flip vertical</button>
+      </div>
       <div class="controls">
         <button id="export" type="button">Export crop</button>
       </div>
       <div id="output"></div>
+      <p><small>Live state (updates as you drag/zoom/rotate/flip):</small></p>
+      <pre id="state-dump"></pre>
       <p><small>Constructor options currently applied:</small></p>
       <pre id="options-dump"></pre>
     </div>
@@ -144,12 +160,25 @@
     };
   }
 
+  function updateStateDump(state) {
+    el("state-dump").textContent = JSON.stringify(state, null, 2);
+  }
+
+  function updateActionVisibility() {
+    el("rotate").style.display = el("rotatable").checked ? "" : "none";
+    const flipDisplay = el("flippable").checked ? "" : "none";
+    el("flip-h").style.display = flipDisplay;
+    el("flip-v").style.display = flipDisplay;
+  }
+
   async function rebuild() {
     if (cropper) cropper.destroy();
     const options = readOptions();
     options.filters = readFilters();
     cropper = new Kiri(document.getElementById("cropper"), options);
+    cropper.on("change", updateStateDump);
     el("options-dump").textContent = JSON.stringify(options, null, 2);
+    updateActionVisibility();
     if (currentSource) await cropper.load(currentSource);
   }
 
@@ -170,6 +199,10 @@
     currentSource = file;
     if (cropper) await cropper.load(file);
   });
+
+  el("rotate").addEventListener("click", () => cropper && cropper.rotate(90));
+  el("flip-h").addEventListener("click", () => cropper && cropper.flipHorizontal());
+  el("flip-v").addEventListener("click", () => cropper && cropper.flipVertical());
 
   el("export").addEventListener("click", async () => {
     if (!cropper) return;
