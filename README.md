@@ -37,7 +37,7 @@ npm test                      # runs all three packages' test suites
 
 ```ts
 import { Kiri } from "kiri";
-import "kiri/kiri.css";
+import "kiri/kiri.min.css";
 
 const cropper = new Kiri(document.getElementById("cropper"), {
   frame: { shape: "circle", width: 200, height: 200 },
@@ -51,6 +51,23 @@ cropper.setFilters({ brightness: 1.2, grayscale: true });
 const blob = await cropper.export({ type: "blob", format: "image/png" });
 await cropper.upload("https://example.com/upload"); // or pass a custom `uploader`
 ```
+
+#### Plain `<script>` tag (no bundler)
+
+```html
+<link rel="stylesheet" href="node_modules/kiri/dist/kiri.min.css" />
+<script src="node_modules/kiri/dist/kiri.min.js"></script>
+<script>
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "circle", width: 200, height: 200 },
+  });
+  const batch = new KiriBatch(container); // also a global, if you need batching
+</script>
+```
+
+`dist/` ships both minified (`kiri.min.js`/`kiri.min.css`) and unminified
+(`kiri.js`/`kiri.css`) versions of the UMD/CJS build and stylesheet — use the
+unminified pair for debugging directly in devtools.
 
 ### Batch cropping
 
@@ -69,7 +86,7 @@ batch.results(); // all crops, in order
 
 ```tsx
 import { KiriCropper, type KiriCropperHandle } from "kiri-react";
-import "kiri/kiri.css";
+import "kiri/kiri.min.css";
 import { useRef } from "react";
 
 const ref = useRef<KiriCropperHandle>(null);
@@ -83,7 +100,7 @@ await ref.current?.load(file);
 
 ```ts
 import { KiriCropper } from "kiri-vue";
-import "kiri/kiri.css";
+import "kiri/kiri.min.css";
 ```
 
 ```html

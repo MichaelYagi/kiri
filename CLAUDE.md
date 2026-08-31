@@ -31,15 +31,38 @@ truth for the intended API; update it alongside any design decisions that change
 - npm workspaces (`workspaces: ["packages/*"]` at the root) — one lockfile,
   `kiri-react`/`kiri-vue`'s `"kiri"` dependency resolves to `packages/core` via
   the workspace, not the npm registry.
-- Build: Vite in library mode per package (`vite.config.ts`), `vite-plugin-dts`
-  for type declarations. Core outputs ESM + UMD; wrappers output ESM + CJS with
-  `react`/`react-dom`/`vue`/`kiri` externalized (peer deps, not bundled).
-  Source maps are on (`build.sourcemap: true`) for the minified output.
-- Styling: `packages/core/src/kiri.css` is a real, separate stylesheet (not
-  JS-injected) — consumers `import "kiri/kiri.css"`. The demo imports it from
-  `main.ts` (not a `<link>` tag — Vite's dev root is `demo/`, so a relative
-  `<link href="../src/kiri.css">` 404s; a JS `import` resolves correctly
-  against the filesystem regardless of dev root).
+- Build: Vite in library mode per package, `vite-plugin-dts` for type
+  declarations. Core's config is `vite.config.mts` (not `.ts`) — the package
+  intentionally has no top-level `"type": "module"` (see below), and `.mts`
+  forces Vite to load its own config as ESM regardless of that. Wrappers
+  output ESM + CJS with `react`/`react-dom`/`vue`/`kiri` externalized (peer
+  deps, not bundled). Source maps are on (`build.sourcemap: true`).
+- Core's dist filenames are explicit, not Vite's defaults: **`kiri.min.js`**
+  (UMD/CJS, minified, the `<script>`-tag-ready build — `main`/`require`),
+  **`kiri.js`** (same UMD/CJS build, unminified, for devtools debugging), and
+  **`kiri.mjs`** (ESM — `module`/`import`). No `"type": "module"` in
+  `package.json`, so a bare `.js` defaults to CommonJS (matching both UMD
+  files' content) while `.mjs` is always ESM — avoids the dual-package hazard
+  a plain `.js` UMD file would hit under `"type":"module"`. The UMD build's
+  Rollup output is a namespace object (`window.Kiri = { Kiri, KiriBatch }`,
+  since the entry has two named exports) — a small `generateBundle` plugin
+  hook in `vite.config.mts` (`flattenUmdGlobal`) appends a footer that
+  flattens it to two separate globals (`window.Kiri`, `window.KiriBatch`) for
+  `<script>`-tag consumers; it's a no-op for `require()`/bundler consumers.
+  Because `build.minify` is whole-build in Vite, `kiri.js` comes from a
+  second build pass (`KIRI_MINIFY=false`, chained in the `build` npm script)
+  that switches `formats` to UMD-only, skips the `dts` plugin, and sets
+  `emptyOutDir: false` so it doesn't wipe out the first pass's output — both
+  reading `process.env.KIRI_MINIFY` in `vite.config.mts`.
+- Styling: `packages/core/src/kiri.css` is the readable source, a real
+  stylesheet (not JS-injected). The build script copies it verbatim to
+  `dist/kiri.css` and minifies it to `dist/kiri.min.css` via esbuild's CSS
+  transform (no separate CSS build tool). Consumers `import
+  "kiri/kiri.min.css"` (or the unminified `kiri/kiri.css` for debugging). The
+  demo imports
+  the *source* `kiri.css` from `main.ts` (not a `<link>` tag — Vite's dev
+  root is `demo/`, so a relative `<link href="../src/kiri.css">` 404s; a JS
+  `import` resolves correctly against the filesystem regardless of dev root).
 - Demo page: `packages/core/demo/index.html`, run via `vite dev`, imports
   library source directly.
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`

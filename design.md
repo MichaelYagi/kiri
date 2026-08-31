@@ -107,8 +107,8 @@ cropper.destroy();
 
 Kiri ships a real, separate stylesheet (`kiri.css`) rather than injecting a
 `<style>` tag at runtime — standard, CSP-safe, and easy for a consumer to
-override or theme. Consumers import it explicitly: `import "kiri/kiri.css"`
-(bundler) or a `<link>` to `node_modules/kiri/dist/kiri.css` directly.
+override or theme. Consumers import it explicitly: `import "kiri/kiri.min.css"`
+(bundler) or a `<link>` to `node_modules/kiri/dist/kiri.min.css` directly.
 
 ## Extended features
 
@@ -195,7 +195,7 @@ kiri/
     │   │   └── types.ts
     │   ├── demo/
     │   ├── test/
-    │   ├── package.json, tsconfig.json, vite.config.ts
+    │   ├── package.json, tsconfig.json, vite.config.mts
     ├── react/               # published as "kiri-react"
     │   ├── src/KiriCropper.tsx, src/index.ts
     │   ├── test/
@@ -208,11 +208,31 @@ kiri/
 
 ## Tooling
 
-- **Build**: Vite in library mode per package, producing ESM + a CJS/UMD
-  build, with `vite-plugin-dts` generating `.d.ts` declarations —
-  npm-publishable output in each package's `dist/`. `kiri-react` uses
-  `@vitejs/plugin-react`; `kiri-vue` needs no SFC plugin (render-function
-  component, not `.vue` files).
+- **Build**: Vite in library mode per package, with `vite-plugin-dts`
+  generating `.d.ts` declarations — npm-publishable output in each package's
+  `dist/`. `kiri-react` uses `@vitejs/plugin-react`; `kiri-vue` needs no SFC
+  plugin (render-function component, not `.vue` files).
+  - Core's dist filenames are deliberately explicit rather than Vite's
+    defaults: **`kiri.min.js`** (UMD/CJS, minified — `main`/`require`,
+    `<script>`-tag-ready, `new Kiri(...)`/`new KiriBatch(...)` as two flat
+    globals, flattened from Rollup's namespace-object UMD output by a small
+    build-time footer), **`kiri.js`** (the same UMD/CJS build, unminified,
+    for devtools debugging), and **`kiri.mjs`** (ESM, for bundlers —
+    `module`/`import`). The package has no top-level `"type": "module"` — a
+    bare `.js` defaults to CommonJS (matching both UMD files' content),
+    `.mjs` is always ESM regardless, avoiding the dual-package hazard a plain
+    `.js` UMD file would otherwise hit. `vite.config.mts` (not `.ts`) so Vite
+    loads its own config as ESM regardless of that package-type default.
+  - Since Vite's `build.minify` is a single whole-build setting, the two UMD
+    variants come from two build passes: the default (minified) pass also
+    emits `kiri.mjs` and the `.d.ts` files; a second pass
+    (`KIRI_MINIFY=false`, read via `process.env` in `vite.config.mts`, which
+    also switches `formats` to `["umd"]` only and skips the `dts` plugin)
+    emits just the unminified `kiri.js`, without clearing `dist/`
+    (`emptyOutDir` is tied to the same env check). Both are chained in the
+    `build` npm script. CSS ships as both `kiri.css` (verbatim copy of the
+    source) and `kiri.min.css` (minified via esbuild's CSS transform),
+    written by that same script.
 - **Demo**: `packages/core/demo`, served via `vite dev`, imports the library
   source (`src/index.ts`, `src/kiri.css`) directly — no build step needed
   during development.

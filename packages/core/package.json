@@ -2,16 +2,20 @@
   "name": "kiri",
   "version": "0.1.0",
   "description": "A dependency-free TypeScript library for interactive image cropping in the browser.",
-  "type": "module",
-  "main": "./dist/kiri.umd.cjs",
-  "module": "./dist/kiri.js",
+  "main": "./dist/kiri.min.js",
+  "module": "./dist/kiri.mjs",
+  "unpkg": "./dist/kiri.min.js",
+  "jsdelivr": "./dist/kiri.min.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/kiri.js",
-      "require": "./dist/kiri.umd.cjs"
+      "import": "./dist/kiri.mjs",
+      "require": "./dist/kiri.min.js"
     },
+    "./kiri.min.js": "./dist/kiri.min.js",
+    "./kiri.js": "./dist/kiri.js",
+    "./kiri.min.css": "./dist/kiri.min.css",
     "./kiri.css": "./dist/kiri.css"
   },
   "files": [
@@ -19,7 +23,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node -e \"require('fs').copyFileSync('src/kiri.css','dist/kiri.css')\"",
+    "build": "vite build && KIRI_MINIFY=false vite build && node -e \"const fs=require('fs');fs.copyFileSync('src/kiri.css','dist/kiri.css');const css=fs.readFileSync('src/kiri.css','utf8');fs.writeFileSync('dist/kiri.min.css',require('esbuild').transformSync(css,{loader:'css',minify:true}).code)\"",
     "test": "vitest run"
   },
   "keywords": [
