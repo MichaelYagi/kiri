@@ -288,6 +288,31 @@ describe("Kiri", () => {
       expect(stage.getAttribute("aria-label")).toMatch(/crop/i);
     });
 
+    it("arrow keys pan the view in the pressed direction (reveal more content on that side)", () => {
+      const cropper = new Kiri(container, { frame: { width: 200, height: 150 }, maxZoom: 4 });
+      (cropper as unknown as { naturalSize: { width: number; height: number } }).naturalSize = {
+        width: 800,
+        height: 600,
+      };
+      cropper.setZoom(2); // rendered (400x300) bigger than frame -> room to pan
+      const stage = container.querySelector(".kiri-stage") as HTMLElement;
+
+      // Pressing Right should reveal more of the image's right side, which
+      // means the image content itself shifts left (offset.x decreases) —
+      // the opposite sign from a rightward drag delta.
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+      expect(cropper.getState().offset.x).toBeLessThan(0);
+
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
+      expect(cropper.getState().offset.x).toBeGreaterThan(0);
+
+      // Pressing Down should reveal more of the image's bottom, i.e. the
+      // image shifts up (offset.y decreases).
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+      expect(cropper.getState().offset.y).toBeLessThan(0);
+    });
+
     it("+/- keys zoom in/out", () => {
       const cropper = new Kiri(container, { minZoom: 1, maxZoom: 4 });
       const stage = container.querySelector(".kiri-stage") as HTMLElement;

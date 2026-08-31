@@ -170,25 +170,28 @@ export function attachGestures(
 
   // Arrow keys pan, +/- zoom, 0 resets — lets a keyboard-only user operate
   // the cropper once the stage is focused (it's a tabbable, labeled element;
-  // see stage.ts).
+  // see stage.ts). Pan direction follows the "arrow moves the view" scroll
+  // convention (pressing Right reveals more of the image's right side), the
+  // opposite of drag's "content follows the pointer" — so the sign is
+  // inverted relative to a drag delta of the same direction.
   function onKeyDown(e: KeyboardEvent): void {
     const state = callbacks.getState();
     switch (e.key) {
       case "ArrowLeft":
         e.preventDefault();
-        applyClampedState({ ...state, offset: { ...state.offset, x: state.offset.x - KEYBOARD_PAN_STEP } });
+        applyClampedState({ ...state, offset: { ...state.offset, x: state.offset.x + KEYBOARD_PAN_STEP } });
         break;
       case "ArrowRight":
         e.preventDefault();
-        applyClampedState({ ...state, offset: { ...state.offset, x: state.offset.x + KEYBOARD_PAN_STEP } });
+        applyClampedState({ ...state, offset: { ...state.offset, x: state.offset.x - KEYBOARD_PAN_STEP } });
         break;
       case "ArrowUp":
         e.preventDefault();
-        applyClampedState({ ...state, offset: { ...state.offset, y: state.offset.y - KEYBOARD_PAN_STEP } });
+        applyClampedState({ ...state, offset: { ...state.offset, y: state.offset.y + KEYBOARD_PAN_STEP } });
         break;
       case "ArrowDown":
         e.preventDefault();
-        applyClampedState({ ...state, offset: { ...state.offset, y: state.offset.y + KEYBOARD_PAN_STEP } });
+        applyClampedState({ ...state, offset: { ...state.offset, y: state.offset.y - KEYBOARD_PAN_STEP } });
         break;
       case "+":
       case "=":

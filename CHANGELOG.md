@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.4
+
+- Fixed inverted arrow-key pan direction (introduced in `0.1.0-alpha.3`):
+  pressing Right/Down was moving the image itself in that direction, which
+  actually revealed *less* of that side. Arrow keys now follow the standard
+  pan/scroll convention — pressing Right reveals more of the image's right
+  side, Down reveals more of the bottom — matching how arrow-key panning
+  works in map/photo-viewer apps generally.
+
 ## 0.1.0-alpha.3
 
 ### Core (`@michaelyagi/kiri`)
