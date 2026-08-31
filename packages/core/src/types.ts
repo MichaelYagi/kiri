@@ -43,6 +43,14 @@ export interface KiriOptions {
   useExifOrientation?: boolean;
   filters?: Partial<Filters>;
   uploader?: Uploader;
+  /**
+   * When true (default), the stage sizes itself to the frame's dimensions
+   * (plus a small margin) so it looks right with zero CSS. Set false to
+   * have the stage fill its container instead (100% width/height) — for
+   * embedding in a layout where you want to control the stage's size via
+   * your own CSS on the container element.
+   */
+  autoSizeStage?: boolean;
 }
 
 export interface KiriState {

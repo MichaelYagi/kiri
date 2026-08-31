@@ -17,6 +17,8 @@ import {
   applyTransform,
   createStage,
   setFrameSize as setStageFrameSize,
+  setStageSize,
+  STAGE_AUTO_SIZE_PADDING,
   type StageElements,
 } from "./stage";
 import {
@@ -46,6 +48,7 @@ interface ResolvedOptions {
   mouseWheelZoom: boolean | "ctrl";
   useExifOrientation: boolean;
   uploader: Uploader | undefined;
+  autoSizeStage: boolean;
 }
 
 export class Kiri {
@@ -65,6 +68,15 @@ export class Kiri {
   private listeners: Record<KiriEventName, KiriEventCallback[]> = { change: [] };
 
   constructor(container: HTMLElement, options: KiriOptions = {}) {
+    if (!container || typeof container.appendChild !== "function") {
+      throw new Error(
+        "Kiri: container element is null/undefined or not a DOM element. " +
+          "This usually means the element wasn't in the DOM yet when " +
+          "`new Kiri(...)` ran — e.g. document.getElementById() was called " +
+          "before the element existed. Place the <script> after the " +
+          "element, or construct inside a DOMContentLoaded listener."
+      );
+    }
     this.container = container;
     this.opts = {
       frame: {
@@ -80,6 +92,7 @@ export class Kiri {
       mouseWheelZoom: options.mouseWheelZoom ?? true,
       useExifOrientation: options.useExifOrientation ?? true,
       uploader: options.uploader,
+      autoSizeStage: options.autoSizeStage ?? true,
     };
     this.state.filters = mergeFilters(DEFAULT_FILTERS, options.filters ?? {});
 
@@ -89,6 +102,7 @@ export class Kiri {
       this.opts.frame.width,
       this.opts.frame.height
     );
+    if (this.opts.autoSizeStage) this.syncStageSize();
     applyFilters(this.stage.imgEl, this.state.filters);
 
     this.gestureHandle = attachGestures(
@@ -210,6 +224,7 @@ export class Kiri {
     this.opts.frame.width = Math.max(MIN_FRAME_SIZE, width);
     this.opts.frame.height = Math.max(MIN_FRAME_SIZE, height);
     setStageFrameSize(this.stage.frameEl, this.opts.frame.width, this.opts.frame.height);
+    if (this.opts.autoSizeStage) this.syncStageSize();
     const rendered = effectiveRenderedSize(
       this.naturalSize,
       this.getFrameSize(),
@@ -251,6 +266,14 @@ export class Kiri {
 
   private getFrameSize(): Size {
     return { width: this.opts.frame.width, height: this.opts.frame.height };
+  }
+
+  private syncStageSize(): void {
+    setStageSize(
+      this.stage.stageEl,
+      this.opts.frame.width + STAGE_AUTO_SIZE_PADDING * 2,
+      this.opts.frame.height + STAGE_AUTO_SIZE_PADDING * 2
+    );
   }
 
   private commitState(next: KiriState): void {

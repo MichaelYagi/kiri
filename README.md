@@ -42,6 +42,8 @@ import "kiri/kiri.min.css";
 const cropper = new Kiri(document.getElementById("cropper"), {
   frame: { shape: "circle", width: 200, height: 200 },
 });
+// No CSS needed on #cropper — the stage auto-sizes itself to the frame's
+// dimensions. Pass `autoSizeStage: false` to size it via your own CSS instead.
 
 await cropper.load(file); // File, Blob, or URL string
 cropper.rotate(90);

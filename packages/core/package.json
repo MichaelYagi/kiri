@@ -13,17 +13,17 @@
       "import": "./dist/kiri.mjs",
       "require": "./dist/kiri.min.js"
     },
-    "./kiri.min.js": "./dist/kiri.min.js",
     "./kiri.js": "./dist/kiri.js",
-    "./kiri.min.css": "./dist/kiri.min.css",
-    "./kiri.css": "./dist/kiri.css"
+    "./kiri.min.js": "./dist/kiri.min.js",
+    "./kiri.css": "./dist/kiri.css",
+    "./kiri.min.css": "./dist/kiri.min.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build && KIRI_MINIFY=false vite build && node -e \"const fs=require('fs');fs.copyFileSync('src/kiri.css','dist/kiri.css');const css=fs.readFileSync('src/kiri.css','utf8');fs.writeFileSync('dist/kiri.min.css',require('esbuild').transformSync(css,{loader:'css',minify:true}).code)\"",
+    "build": "vite build && KIRI_MINIFY=false vite build && node -e \"const fs=require('fs'),css=fs.readFileSync('src/kiri.css','utf8');fs.writeFileSync('dist/kiri.css',css);fs.writeFileSync('dist/kiri.min.css',require('esbuild').transformSync(css,{loader:'css',minify:true}).code)\"",
     "test": "vitest run"
   },
   "keywords": [

@@ -47,6 +47,20 @@ export function setFrameSize(
   frameEl.style.height = `${height}px`;
 }
 
+/** Padding added around the frame when the stage auto-sizes itself — small
+ * enough to avoid empty space, big enough to fit the resize handle and give
+ * a visible drag margin. */
+export const STAGE_AUTO_SIZE_PADDING = 20;
+
+export function setStageSize(
+  stageEl: HTMLDivElement,
+  width: number,
+  height: number
+): void {
+  stageEl.style.width = `${width}px`;
+  stageEl.style.height = `${height}px`;
+}
+
 export function applyTransform(
   imageLayerEl: HTMLDivElement,
   state: KiriState,

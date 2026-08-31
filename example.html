@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kiri example</title>
+    <link rel="stylesheet" href="packages/core/dist/kiri.min.css" />
+    <!-- No CSS needed on #cropper — the stage auto-sizes itself to the
+         frame's dimensions (200x200 here, plus a small margin). -->
+  </head>
+  <body>
+    <!-- The container must exist in the DOM before `new Kiri(...)` runs —
+         that's why it's above the <script> tags below, not the other way
+         around (that ordering mistake is exactly what throws "Kiri:
+         container element is null/undefined..."). -->
+    <div id="cropper"></div>
+
+    <script src="packages/core/dist/kiri.min.js"></script>
+    <script>
+      const cropper = new Kiri(document.getElementById("cropper"), {
+        frame: { shape: "circle", width: 200, height: 200 },
+      });
+
+      cropper
+        .load("example.png") // URL string — also accepts a File or Blob
+        .then(() => console.log("loaded"))
+        .catch((err) => console.error("failed to load:", err));
+    </script>
+  </body>
+</html>

@@ -9,6 +9,10 @@ describe("Kiri", () => {
     document.body.appendChild(container);
   });
 
+  it("throws a clear error instead of a cryptic TypeError when the container is null", () => {
+    expect(() => new Kiri(null as unknown as HTMLElement)).toThrow(/container element is null/);
+  });
+
   it("builds the stage/frame DOM inside the container", () => {
     new Kiri(container, { frame: { shape: "circle", width: 150, height: 120 } });
 
@@ -17,6 +21,31 @@ describe("Kiri", () => {
     expect(frame.classList.contains("kiri-frame--circle")).toBe(true);
     expect(frame.style.width).toBe("150px");
     expect(frame.style.height).toBe("120px");
+  });
+
+  it("auto-sizes the stage to the frame dimensions plus padding by default", () => {
+    new Kiri(container, { frame: { width: 150, height: 120 } });
+
+    const stage = container.querySelector(".kiri-stage") as HTMLElement;
+    expect(stage.style.width).toBe("190px"); // 150 + 20*2
+    expect(stage.style.height).toBe("160px"); // 120 + 20*2
+  });
+
+  it("keeps the stage auto-sized after setFrameSize()", () => {
+    const cropper = new Kiri(container, { frame: { width: 150, height: 120 } });
+    cropper.setFrameSize(200, 100);
+
+    const stage = container.querySelector(".kiri-stage") as HTMLElement;
+    expect(stage.style.width).toBe("240px");
+    expect(stage.style.height).toBe("140px");
+  });
+
+  it("leaves the stage unstyled (fills container via CSS) when autoSizeStage is false", () => {
+    new Kiri(container, { frame: { width: 150, height: 120 }, autoSizeStage: false });
+
+    const stage = container.querySelector(".kiri-stage") as HTMLElement;
+    expect(stage.style.width).toBe("");
+    expect(stage.style.height).toBe("");
   });
 
   it("clamps zoom to the configured min/max", () => {

@@ -65,6 +65,16 @@ truth for the intended API; update it alongside any design decisions that change
   `import` resolves correctly against the filesystem regardless of dev root).
 - Demo page: `packages/core/demo/index.html`, run via `vite dev`, imports
   library source directly.
+- Stage sizing: by default (`autoSizeStage: true`, the default) the stage is
+  given an inline `width`/`height` (in `Kiri`'s constructor and
+  `setFrameSize()`, via `stage.ts`'s `setStageSize`) equal to the frame's
+  dimensions plus `STAGE_AUTO_SIZE_PADDING` (20px) on each axis — so it
+  renders correctly with zero consumer CSS, and the resize handle (which
+  protrudes 5px past the frame edge) stays within the stage's
+  `overflow: hidden` clipping bounds. `autoSizeStage: false` skips that
+  inline sizing, falling back to `kiri.css`'s `.kiri-stage { width: 100%;
+  height: 100% }` rule — for a consumer who wants to size the stage via
+  their own container CSS instead.
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

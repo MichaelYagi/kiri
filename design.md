@@ -24,7 +24,11 @@ library — no code, naming, or documentation from any other project is reused.
 
 ## Core concepts
 
-- **Stage** — the outer bounding box the user sees; sized by CSS/parent element.
+- **Stage** — the outer bounding box the user sees. By default it auto-sizes
+  itself to the frame's dimensions plus a small margin (so it looks right
+  with zero CSS); `autoSizeStage: false` reverts to sizing via the
+  container's own CSS instead (100% width/height), for embedding in a
+  layout where the consumer wants to control the stage's size directly.
 - **Frame** — the fixed selection window inside the stage (the region that gets
   exported). Shape: `"rect"` or `"circle"`.
 - **Image layer** — the source image, freely draggable and zoomable behind the frame.
@@ -45,6 +49,7 @@ const cropper = new Kiri(containerElement, {
   resizableFrame: false,
   mouseWheelZoom: true, // or "ctrl" to require Ctrl+wheel
   useExifOrientation: true,
+  autoSizeStage: true, // default; false = size the stage via container CSS instead
 });
 
 // Load an image (File, Blob, or URL string)
@@ -98,6 +103,9 @@ cropper.destroy();
 - Rotate in 90° increments
 - Flip horizontally/vertically (independent of rotation)
 - Optional resizable frame (drag handles)
+- The stage auto-sizes to the frame's dimensions by default — no CSS
+  required for a correctly-sized widget (`autoSizeStage: false` opts back
+  into container-driven CSS sizing)
 - Automatic EXIF orientation correction on load (rotation + horizontal flip)
 - Zoom is clamped so the image can never be smaller than the frame
   (`enforceBoundary`-equivalent behavior, always on)
