@@ -3,6 +3,21 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.5
+
+- Fixed a memory leak: `load()` created an object URL (via
+  `URL.createObjectURL`) for `File`/`Blob` sources but only revoked it on a
+  successful decode. A failed load (corrupt file, unsupported format) left
+  the object URL — and the underlying blob — alive for the rest of the
+  page's lifetime. Now revoked on both the success and error paths.
+- New `crop-region.html` example, plus a "Center" button (`setOffset()`) in
+  the playground and a "Reset" button in the basic-crop example — closing
+  the last few methods that had no live demonstration anywhere in the docs.
+- The batch-cropping example's queue now uses two distinct sample photos
+  instead of loading the same image twice, and gained a "Previous image"
+  button (`KiriBatch.previous()` was added in `0.1.0-alpha.3` but the
+  example was never updated for it).
+
 ## 0.1.0-alpha.4
 
 - Fixed inverted arrow-key pan direction (introduced in `0.1.0-alpha.3`):

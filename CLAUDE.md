@@ -18,7 +18,7 @@ messages.
 
 ## Status
 
-Released as `0.1.0-alpha.4` (all three packages, in lockstep). Core publishes
+Released as `0.1.0-alpha.5` (all three packages, in lockstep). Core publishes
 to npm as `@michaelyagi/kiri` automatically on `v*` git tags (see
 `design.md`'s "Publishing" section and `.github/workflows/publish.yml`);
 `kiri-react`/`kiri-vue` stay unpublished for now. See `CHANGELOG.md` for

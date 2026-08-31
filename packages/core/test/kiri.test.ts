@@ -212,6 +212,40 @@ describe("Kiri", () => {
     });
   });
 
+  describe("load() object URL lifecycle", () => {
+    it("revokes the object URL even when the image fails to decode (no leak on error)", async () => {
+      // jsdom doesn't implement createObjectURL/revokeObjectURL at all, so
+      // there's nothing for vi.spyOn to wrap — install plain fakes instead.
+      const createFn = vi.fn().mockReturnValue("blob:fake");
+      const revokeFn = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (URL as any).createObjectURL = createFn;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (URL as any).revokeObjectURL = revokeFn;
+
+      const cropper = new Kiri(container);
+      const imgEl = container.querySelector("img") as HTMLImageElement;
+      const blob = new Blob(["not a real image"], { type: "image/png" });
+      // jsdom's Blob doesn't implement arrayBuffer() — polyfill just enough
+      // for readExifOrientation() to run.
+      (blob as unknown as { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer = () =>
+        Promise.resolve(new ArrayBuffer(4));
+
+      const loadPromise = cropper.load(blob);
+      await Promise.resolve().then(() => Promise.resolve()); // let arrayBuffer()/EXIF parsing settle before .src is set
+      imgEl.onerror?.(new Event("error"));
+
+      await expect(loadPromise).rejects.toThrow(/failed to load image/);
+      expect(createFn).toHaveBeenCalledWith(blob);
+      expect(revokeFn).toHaveBeenCalledWith("blob:fake");
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (URL as any).createObjectURL;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (URL as any).revokeObjectURL;
+    });
+  });
+
   describe("resizableFrame / lockAspectRatio", () => {
     function drag(handle: Element, dx: number, dy: number): void {
       // jsdom doesn't implement pointer capture.

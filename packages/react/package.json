@@ -1,6 +1,6 @@
 {
   "name": "kiri-react",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "React wrapper component for the Kiri image cropper.",
   "type": "module",
   "main": "./dist/kiri-react.cjs",
@@ -24,7 +24,7 @@
     "react": ">=18"
   },
   "dependencies": {
-    "@michaelyagi/kiri": "^0.1.0-alpha.4"
+    "@michaelyagi/kiri": "^0.1.0-alpha.5"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

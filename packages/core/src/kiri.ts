@@ -205,13 +205,18 @@ export class Kiri {
       url = objectUrl;
     }
 
-    await new Promise<void>((resolve, reject) => {
-      this.stage.imgEl.onload = () => resolve();
-      this.stage.imgEl.onerror = () => reject(new Error("Kiri: failed to load image"));
-      this.stage.imgEl.src = url;
-    });
-
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        this.stage.imgEl.onload = () => resolve();
+        this.stage.imgEl.onerror = () => reject(new Error("Kiri: failed to load image"));
+        this.stage.imgEl.src = url;
+      });
+    } finally {
+      // Must run on the error path too, not just success — otherwise a
+      // rejected load() (corrupt file, unsupported format) leaks the blob
+      // URL for the rest of the page's lifetime.
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    }
 
     this.naturalSize = {
       width: this.stage.imgEl.naturalWidth,

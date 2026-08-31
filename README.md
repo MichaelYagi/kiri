@@ -59,7 +59,7 @@ an interactive playground, and the full API reference.
 
 ## Status
 
-**`0.1.0-alpha.4`** — see [CHANGELOG.md](./CHANGELOG.md)
+**`0.1.0-alpha.5`** — see [CHANGELOG.md](./CHANGELOG.md)
 for what's in it. Core publishes to npm automatically on version tags via
 GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
 is expected to be mostly stable but may still change before a `0.1.0`
