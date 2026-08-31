@@ -2,21 +2,45 @@
 
 # Kiri
 
-Kiri is a dependency-free TypeScript library for interactive image cropping in
-the browser. Drag, zoom, rotate, and flip an image inside a fixed frame, apply
-brightness/contrast/saturation/grayscale/sepia filters, then export the crop
-(base64, blob, or canvas) or upload it directly.
+A dependency-free TypeScript library for interactive image cropping in the browser.
 
-A monorepo: the core library plus thin React/Vue wrapper components that reuse
-its logic rather than duplicating it.
+## Features
+
+- **Drag, zoom, rotate, flip** — wheel/trackpad pinch zoom, an optional
+  built-in zoom slider (`showZoomer`, placeable on any of the four sides),
+  90° rotation, independent horizontal/vertical flip
+- **Rectangle or circle frame** — circle is a real clip on export (transparent
+  corners on PNG/WebP), not just a visual overlay
+- **Zero-CSS sizing** — the stage auto-sizes itself to the frame's dimensions
+- **Filters** — brightness/contrast/saturation/grayscale/sepia, applied
+  identically to the live preview and the export
+- **Automatic EXIF orientation correction** on load
+- **Resizable frame**, drag-handle based
+- **Export** to base64, Blob, or Canvas — JPEG/PNG/WebP, custom output size
+- **Upload** — a built-in FormData/fetch helper, or plug in your own
+- **Batch cropping** (`KiriBatch`) — one shared cropper stepped through a
+  queue of images
+- **React and Vue wrappers** (`kiri-react`, `kiri-vue`) — thin components, no
+  duplicated logic
+- Runtime-validated options (a typo'd setting warns and falls back rather
+  than silently misbehaving), a clear error if the container element is
+  missing, and a real, CSP-safe stylesheet instead of injected styles
+- Ships as ESM for bundlers and UMD/CJS for a plain `<script>` tag —
+  minified and unminified builds of both
+
+## Documentation
+
+**[michaelyagi.github.io/kiri](https://michaelyagi.github.io/kiri)** —
+getting started, every method/event/setting, guides, real runnable examples,
+an interactive playground, and the full API reference.
+
+## Packages
 
 | Package | Path | What it is |
 |---|---|---|
 | `kiri` | `packages/core` | The library itself — framework-agnostic |
 | `kiri-react` | `packages/react` | `<KiriCropper>` React component |
 | `kiri-vue` | `packages/vue` | `<KiriCropper>` Vue component |
-
-See [design.md](./design.md) for the full design document and public API.
 
 ## Status
 
@@ -25,114 +49,14 @@ See [design.md](./design.md) for the full design document and public API.
 repo (npm workspaces) until then. The public API is expected to be mostly
 stable but may still change before a `0.1.0` (non-alpha) release.
 
-v1 (drag/zoom/rotate/flip/resizable-frame/EXIF/export) plus filters, `upload()`,
-multi-image batching (`KiriBatch`), a built-in zoom slider, and the React/Vue
-wrappers are all implemented and covered by each package's Vitest suite.
-
-## Usage
+## Development
 
 ```bash
 npm install                # installs all workspace packages
 npm run dev                 # core demo at http://localhost:5173
 npm run build                # builds all three packages
 npm test                      # runs all three packages' test suites
+npm run docs:build             # rebuilds the docs/ site (library + API reference + asset sync)
 ```
 
-### Core
-
-```ts
-import { Kiri } from "kiri";
-import "kiri/kiri.min.css";
-
-const cropper = new Kiri(document.getElementById("cropper"), {
-  frame: { shape: "circle", width: 200, height: 200 },
-});
-// No CSS needed on #cropper — the stage auto-sizes itself to the frame's
-// dimensions. Pass `autoSizeStage: false` to size it via your own CSS instead.
-
-await cropper.load(file); // File, Blob, or URL string
-cropper.rotate(90);
-cropper.flipHorizontal();
-cropper.setFilters({ brightness: 1.2, grayscale: true });
-
-const blob = await cropper.export({ type: "blob", format: "image/png" });
-await cropper.upload("https://example.com/upload"); // or pass a custom `uploader`
-
-cropper.destroy(); // removes all event listeners and clears the container's markup
-```
-
-Full method list (including every option each one takes) is in
-[design.md](./design.md#methods-reference).
-
-#### Built-in zoom slider
-
-```ts
-new Kiri(container, {
-  showZoomer: true,
-  zoomerPosition: "bottom", // "top" | "bottom" | "left" | "right", default "bottom"
-});
-```
-
-Renders its own `<input type="range">` next to the stage — no manual wiring
-needed. It's bidirectionally synced: dragging it zooms, and zooming any other
-way (wheel, pinch, `setZoom()`) moves it. Position is purely a placement
-choice; behavior is identical in all four.
-
-#### Plain `<script>` tag (no bundler)
-
-```html
-<link rel="stylesheet" href="node_modules/kiri/dist/kiri.min.css" />
-<script src="node_modules/kiri/dist/kiri.min.js"></script>
-<script>
-  const cropper = new Kiri(document.getElementById("cropper"), {
-    frame: { shape: "circle", width: 200, height: 200 },
-  });
-  const batch = new KiriBatch(container); // also a global, if you need batching
-</script>
-```
-
-`dist/` ships both minified (`kiri.min.js`/`kiri.min.css`) and unminified
-(`kiri.js`/`kiri.css`) versions of the UMD/CJS build and stylesheet — use the
-unminified pair for debugging directly in devtools.
-
-### Batch cropping
-
-```ts
-import { KiriBatch } from "kiri";
-
-const batch = new KiriBatch(container, options, [{ source: fileA }, { source: fileB }]);
-while (await batch.next()) {
-  // batch.cropper shows batch.current().source — let the user adjust it, then:
-  await batch.capture();
-}
-batch.results(); // all crops, in order
-```
-
-### React
-
-```tsx
-import { KiriCropper, type KiriCropperHandle } from "kiri-react";
-import "kiri/kiri.min.css";
-import { useRef } from "react";
-
-const ref = useRef<KiriCropperHandle>(null);
-
-<KiriCropper ref={ref} frame={{ shape: "circle", width: 200, height: 200 }} onChange={console.log} />;
-
-await ref.current?.load(file);
-```
-
-### Vue
-
-```ts
-import { KiriCropper } from "kiri-vue";
-import "kiri/kiri.min.css";
-```
-
-```html
-<KiriCropper ref="cropper" :frame="{ shape: 'circle', width: 200, height: 200 }" @change="onChange" />
-```
-
-```ts
-await cropper.value.load(file);
-```
+See [design.md](./design.md) for the full design document.
