@@ -1,4 +1,4 @@
 node_modules
-dist
+/packages/*/dist
 *.local
 .DS_Store

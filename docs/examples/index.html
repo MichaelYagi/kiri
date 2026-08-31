@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Examples — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html" class="active">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Examples</h1>
+  <p class="lead">Real, runnable HTML files — not just snippets.</p>
+
+  <p>Each one loads <code>../dist/kiri.min.js</code> +
+  <code>../dist/kiri.min.css</code> directly — no bundler, no build step.
+  Open any of them straight in a browser, or click through from here.</p>
+
+  <ul class="example-list">
+    <li>
+      <a href="basic-crop.html">Basic crop</a>
+      <p>The minimal setup: load an image, drag/zoom/rotate, export.</p>
+    </li>
+    <li>
+      <a href="circle-crop.html">Circle crop</a>
+      <p>A circular frame, exported with real transparent corners — not just a visual overlay.</p>
+    </li>
+    <li>
+      <a href="filters.html">Filters</a>
+      <p>Brightness/contrast/saturation sliders plus grayscale/sepia toggles, live.</p>
+    </li>
+    <li>
+      <a href="batch-cropping.html">Batch cropping</a>
+      <p>Step through multiple images with one shared cropper, capturing each one.</p>
+    </li>
+    <li>
+      <a href="zoom-slider.html">Built-in zoom slider</a>
+      <p>The four <code>zoomerPosition</code> placements, side by side.</p>
+    </li>
+    <li>
+      <a href="resizable-frame.html">Resizable frame</a>
+      <p>Drag the frame's corner handle to resize it live.</p>
+    </li>
+    <li>
+      <a href="upload.html">Upload</a>
+      <p>Exports the crop and POSTs it as FormData to a URL you provide.</p>
+    </li>
+  </ul>
+</main>
+</body>
+</html>

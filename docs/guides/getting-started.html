@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Getting started — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html" class="active">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Getting started</h1>
+  <p class="lead">Install Kiri and get your first crop working.</p>
+
+  <h2>Install</h2>
+
+  <h3>Plain &lt;script&gt; tag (no build step)</h3>
+  <pre><code>&lt;link rel="stylesheet" href="node_modules/kiri/dist/kiri.min.css" /&gt;
+&lt;script src="node_modules/kiri/dist/kiri.min.js"&gt;&lt;/script&gt;</code></pre>
+  <p><code>Kiri</code> and <code>KiriBatch</code> land as two globals. Both a
+  minified pair (<code>kiri.min.js</code>/<code>kiri.min.css</code>) and an
+  unminified pair (<code>kiri.js</code>/<code>kiri.css</code>) ship in
+  <code>dist/</code> — use the unminified pair when you need to debug
+  directly in devtools.</p>
+
+  <h3>npm / ESM</h3>
+  <pre><code>npm install kiri</code></pre>
+  <pre><code>import { Kiri } from "kiri";
+import "kiri/kiri.min.css";</code></pre>
+
+  <h2>Zero-config quickstart</h2>
+  <p>The container element must already exist in the DOM before you
+  construct <code>Kiri</code> — that's why the <code>&lt;div&gt;</code> comes
+  before the <code>&lt;script&gt;</code> below. Constructing against a
+  container that doesn't exist yet throws a clear error rather than a
+  cryptic native one.</p>
+  <pre><code>&lt;div id="cropper"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "circle", width: 200, height: 200 },
+  });
+
+  await cropper.load("photo.jpg"); // File, Blob, or URL string
+
+  const blob = await cropper.export({ type: "blob", format: "image/png" });
+&lt;/script&gt;</code></pre>
+
+  <p>No CSS is required on <code>#cropper</code> — the stage auto-sizes
+  itself to the frame's dimensions (<code>autoSizeStage: true</code> by
+  default). See <a href="settings.html">Settings</a> to size it via your own
+  CSS instead.</p>
+
+  <h2>Loading an image</h2>
+  <p><code>load()</code> accepts a <code>File</code> (e.g. from an
+  <code>&lt;input type="file"&gt;</code>), a <code>Blob</code>, or a plain
+  URL string:</p>
+  <pre><code>fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0];
+  if (file) await cropper.load(file);
+});</code></pre>
+
+  <div class="note">EXIF orientation is corrected automatically on load
+  (<code>useExifOrientation: true</code> by default) — a photo taken on its
+  side from a phone camera displays right-side up.</div>
+
+  <div class="next-steps">Next: <a href="methods.html">Methods</a> — every method Kiri exposes.</div>
+</main>
+</body>
+</html>

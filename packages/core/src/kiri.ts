@@ -67,6 +67,11 @@ interface ResolvedOptions {
   zoomerPosition: ZoomerPosition;
 }
 
+/**
+ * An interactive image cropper attached to a plain DOM element. Drag to pan,
+ * zoom via wheel/pinch/an optional built-in slider, rotate in 90° steps,
+ * flip, apply filters, then export or upload the crop.
+ */
 export class Kiri {
   private readonly container: HTMLElement;
   private readonly opts: ResolvedOptions;
@@ -84,6 +89,11 @@ export class Kiri {
   };
   private listeners: Record<KiriEventName, KiriEventCallback[]> = { change: [] };
 
+  /**
+   * @param container An element already present in the DOM. Passing
+   * `null`/`undefined`, or an element that isn't in the DOM yet, throws.
+   * @param options See the {@link KiriOptions} fields for defaults.
+   */
   constructor(container: HTMLElement, options: KiriOptions = {}) {
     if (!container || typeof container.appendChild !== "function") {
       throw new Error(
@@ -157,6 +167,15 @@ export class Kiri {
     if (this.opts.resizableFrame) this.enableFrameResize();
   }
 
+  /**
+   * Loads an image, replacing whatever was loaded before. EXIF orientation
+   * (rotation + horizontal flip) is corrected automatically unless
+   * `useExifOrientation: false` was passed to the constructor — only for
+   * `File`/`Blob` sources, since a plain URL string can't be read for EXIF
+   * data without an extra fetch.
+   * @param source A `File` (e.g. from a file input), a `Blob`, or a URL string.
+   * @param loadOptions Initial `zoom`/`offset`/`rotation`/`flip`.
+   */
   async load(source: File | Blob | string, loadOptions: LoadOptions = {}): Promise<void> {
     let rotation = normalizeRotation(loadOptions.rotation ?? 0);
     let flipHorizontal = loadOptions.flip?.horizontal ?? false;
@@ -209,6 +228,7 @@ export class Kiri {
     });
   }
 
+  /** A snapshot of the current state — mutating the returned object has no effect. */
   getState(): KiriState {
     return {
       zoom: this.state.zoom,
@@ -219,6 +239,7 @@ export class Kiri {
     };
   }
 
+  /** Sets the zoom to an absolute value, clamped to `[minZoom, maxZoom]`. */
   setZoom(zoom: number): void {
     const clamped = clampZoom(zoom, this.opts.minZoom, this.opts.maxZoom);
     const rendered = effectiveRenderedSize(
@@ -231,6 +252,10 @@ export class Kiri {
     this.commitState({ ...this.state, zoom: clamped, offset });
   }
 
+  /**
+   * Rotates relative to the current rotation, snapped to the nearest 90°.
+   * No-op if `rotatable: false` was passed to the constructor.
+   */
   rotate(deltaDeg: number): void {
     if (!this.opts.rotatable) return;
     const snapped = Math.round(deltaDeg / 90) * 90;
@@ -245,18 +270,25 @@ export class Kiri {
     this.commitState({ ...this.state, rotation, offset });
   }
 
+  /** Toggles horizontal flip, independent of rotation. No-op if `flippable: false`. */
   flipHorizontal(): void {
     if (!this.opts.flippable) return;
     const flip: Flip = { ...this.state.flip, horizontal: !this.state.flip.horizontal };
     this.commitState({ ...this.state, flip });
   }
 
+  /** Toggles vertical flip, independent of rotation. No-op if `flippable: false`. */
   flipVertical(): void {
     if (!this.opts.flippable) return;
     const flip: Flip = { ...this.state.flip, vertical: !this.state.flip.vertical };
     this.commitState({ ...this.state, flip });
   }
 
+  /**
+   * Resizes the frame. Also resizes the stage to match, if
+   * `autoSizeStage: true` (the default). Each axis is clamped to a 20px
+   * minimum.
+   */
   setFrameSize(width: number, height: number): void {
     this.opts.frame.width = Math.max(MIN_FRAME_SIZE, width);
     this.opts.frame.height = Math.max(MIN_FRAME_SIZE, height);
@@ -272,10 +304,20 @@ export class Kiri {
     this.commitState({ ...this.state, offset });
   }
 
+  /**
+   * Merges a partial update into the current filters (omitted fields are
+   * left as they are). Numeric values are clamped to `>= 0`.
+   */
   setFilters(filters: Partial<Filters>): void {
     this.commitState({ ...this.state, filters: mergeFilters(this.state.filters, filters) });
   }
 
+  /**
+   * Renders the current crop. A circle frame is a real clip in the output
+   * (transparent corners on PNG/WebP); a circle exported as JPEG warns and
+   * renders solid black corners instead, since JPEG has no alpha channel.
+   * @returns A data URL string (`type: "base64"`, the default), a `Blob`, or an `HTMLCanvasElement`.
+   */
   async export(options: ExportOptions = {}): Promise<ExportResult> {
     return exportCrop(
       this.stage.imgEl,
@@ -286,20 +328,35 @@ export class Kiri {
     );
   }
 
+  /**
+   * Exports the current crop as a blob, then uploads it — a default
+   * FormData/`fetch` POST, or a custom `uploader` (per-call `options.uploader`
+   * wins over the constructor's, which wins over the built-in default).
+   */
   async upload(url: string, options: UploadOptions = {}): Promise<unknown> {
     const blob = (await this.export({ ...options, type: "blob" })) as Blob;
     const uploader = options.uploader ?? this.opts.uploader ?? uploadBlob;
     return uploader(blob, { ...options, url });
   }
 
+  /** Subscribes to `"change"` — fires on every state update (drag/zoom/rotate/flip/filters), and once after `load()` resolves. */
   on(event: KiriEventName, callback: KiriEventCallback): void {
     this.listeners[event].push(callback);
   }
 
+  /** Unsubscribes a callback previously passed to {@link on}. */
   off(event: KiriEventName, callback: KiriEventCallback): void {
     this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
   }
 
+  /**
+   * Tears the instance down: removes all pointer/wheel event listeners
+   * (drag/zoom gestures), the resize-handle listener (if `resizableFrame`),
+   * and the zoom-slider listener (if `showZoomer`); clears the container's
+   * `innerHTML`, leaving an empty container element; and clears all
+   * `"change"` listeners. Call this when you're done with an instance (e.g.
+   * unmounting) to avoid leaking listeners.
+   */
   destroy(): void {
     this.gestureHandle.destroy();
     this.resizeHandle?.destroy();

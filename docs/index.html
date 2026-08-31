@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kiri — interactive image cropping for the browser</title>
+<link rel="stylesheet" href="assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="index.html">Kiri</a>
+  <a href="index.html" class="active">Overview</a>
+  <a href="guides/getting-started.html">Getting started</a>
+  <a href="guides/methods.html">Methods</a>
+  <a href="guides/events.html">Events</a>
+  <a href="guides/settings.html">Settings</a>
+  <a href="guides/filters.html">Filters</a>
+  <a href="guides/batch-cropping.html">Batch cropping</a>
+  <a href="guides/architecture.html">Architecture</a>
+  <a href="examples/index.html">Examples</a>
+  <a href="playground/index.html">Playground</a>
+  <a href="api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Kiri</h1>
+  <p class="lead">A dependency-free TypeScript library for interactive image cropping in the browser.</p>
+
+  <p>Drag, zoom, rotate, and flip an image inside a fixed frame. Apply
+  brightness/contrast/saturation/grayscale/sepia filters. Export the crop as
+  base64, a Blob, or a canvas — or upload it directly. Rectangle or circle
+  frame, with the circle actually clipped in the exported image, not just
+  shown as an overlay. Zero runtime dependencies, works via a plain
+  <code>&lt;script&gt;</code> tag or from npm.</p>
+
+  <h2>Zero-config quickstart</h2>
+  <pre><code>&lt;link rel="stylesheet" href="node_modules/kiri/dist/kiri.min.css" /&gt;
+&lt;script src="node_modules/kiri/dist/kiri.min.js"&gt;&lt;/script&gt;
+&lt;div id="cropper"&gt;&lt;/div&gt;
+&lt;script&gt;
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "circle", width: 200, height: 200 },
+  });
+  await cropper.load("photo.jpg");
+  const blob = await cropper.export({ type: "blob" });
+&lt;/script&gt;</code></pre>
+
+  <p>No CSS sizing needed on the container — the stage auto-sizes itself to
+  the frame's dimensions. See <a href="guides/getting-started.html">Getting
+  started</a> for npm/ESM installation too.</p>
+
+  <h2>Where to go next</h2>
+  <ul>
+    <li><a href="guides/getting-started.html">Getting started</a> — install and first crop</li>
+    <li><a href="examples/index.html">Examples</a> — real, runnable, self-contained HTML files</li>
+    <li><a href="playground/index.html">Playground</a> — every option, live, in your browser</li>
+    <li><a href="guides/methods.html">Methods</a>, <a href="guides/events.html">Events</a>, <a href="guides/settings.html">Settings</a> — reference tables</li>
+    <li><a href="api/index.html">API reference</a> — generated from source via TypeDoc, always in sync with the actual public types</li>
+  </ul>
+</main>
+</body>
+</html>

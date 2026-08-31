@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Playground — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+<link rel="stylesheet" href="../dist/kiri.min.css" />
+<style>
+  main { max-width: 1000px; }
+  .pg-layout { display: flex; gap: 2.5rem; flex-wrap: wrap; align-items: flex-start; margin-top: 1.5rem; }
+  .pg-form { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 0.9rem; }
+  .pg-form fieldset { border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem 1rem; }
+  .pg-form legend { font-size: 0.85rem; color: var(--muted); padding: 0 0.4rem; }
+  .pg-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin: 0.4rem 0; font-size: 0.9rem; }
+  .pg-row input[type="number"] { width: 5rem; }
+  .pg-preview { flex: 1; min-width: 280px; }
+  #cropper { min-height: 240px; }
+</style>
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html" class="active">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Playground</h1>
+  <p class="lead">Every option, live. Changing a constructor option rebuilds the cropper below.</p>
+
+  <input id="file-input" type="file" accept="image/*" />
+
+  <div class="pg-layout">
+    <form class="pg-form" id="form">
+      <fieldset>
+        <legend>Frame</legend>
+        <div class="pg-row"><label for="shape">Shape</label>
+          <select id="shape"><option value="rectangle">rectangle</option><option value="circle">circle</option></select>
+        </div>
+        <div class="pg-row"><label for="frameWidth">Width</label><input id="frameWidth" type="number" min="20" value="200" /></div>
+        <div class="pg-row"><label for="frameHeight">Height</label><input id="frameHeight" type="number" min="20" value="200" /></div>
+        <div class="pg-row"><label for="resizableFrame">Resizable</label><input id="resizableFrame" type="checkbox" /></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Zoom</legend>
+        <div class="pg-row"><label for="minZoom">minZoom</label><input id="minZoom" type="number" min="0.1" step="0.1" value="1" /></div>
+        <div class="pg-row"><label for="maxZoom">maxZoom</label><input id="maxZoom" type="number" min="0.1" step="0.1" value="4" /></div>
+        <div class="pg-row"><label for="mouseWheelZoom">mouseWheelZoom</label>
+          <select id="mouseWheelZoom"><option value="true">true</option><option value="false">false</option><option value="ctrl">"ctrl"</option></select>
+        </div>
+        <div class="pg-row"><label for="showZoomer">showZoomer</label><input id="showZoomer" type="checkbox" /></div>
+        <div class="pg-row"><label for="zoomerPosition">zoomerPosition</label>
+          <select id="zoomerPosition"><option>bottom</option><option>top</option><option>left</option><option>right</option></select>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Behavior</legend>
+        <div class="pg-row"><label for="rotatable">rotatable</label><input id="rotatable" type="checkbox" checked /></div>
+        <div class="pg-row"><label for="flippable">flippable</label><input id="flippable" type="checkbox" checked /></div>
+        <div class="pg-row"><label for="useExifOrientation">useExifOrientation</label><input id="useExifOrientation" type="checkbox" checked /></div>
+        <div class="pg-row"><label for="autoSizeStage">autoSizeStage</label><input id="autoSizeStage" type="checkbox" checked /></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Filters (live — no rebuild)</legend>
+        <div class="pg-row"><label for="brightness">brightness</label><input id="brightness" type="range" min="0" max="2" step="0.05" value="1" /></div>
+        <div class="pg-row"><label for="contrast">contrast</label><input id="contrast" type="range" min="0" max="2" step="0.05" value="1" /></div>
+        <div class="pg-row"><label for="saturation">saturation</label><input id="saturation" type="range" min="0" max="2" step="0.05" value="1" /></div>
+        <div class="pg-row"><label for="grayscale">grayscale</label><input id="grayscale" type="checkbox" /></div>
+        <div class="pg-row"><label for="sepia">sepia</label><input id="sepia" type="checkbox" /></div>
+      </fieldset>
+    </form>
+
+    <div class="pg-preview">
+      <div id="cropper"></div>
+      <div class="controls">
+        <button id="export" type="button">Export crop</button>
+      </div>
+      <div id="output"></div>
+      <p><small>Constructor options currently applied:</small></p>
+      <pre id="options-dump"></pre>
+    </div>
+  </div>
+</main>
+
+<script src="../dist/kiri.min.js"></script>
+<script>
+  const constructorIds = [
+    "shape", "frameWidth", "frameHeight", "resizableFrame",
+    "minZoom", "maxZoom", "mouseWheelZoom", "showZoomer", "zoomerPosition",
+    "rotatable", "flippable", "useExifOrientation", "autoSizeStage",
+  ];
+  const el = (id) => document.getElementById(id);
+
+  let cropper = null;
+  let currentSource = "../assets/cat.jpg";
+
+  function readMouseWheelZoom() {
+    const v = el("mouseWheelZoom").value;
+    if (v === "true") return true;
+    if (v === "false") return false;
+    return v; // "ctrl"
+  }
+
+  function readOptions() {
+    return {
+      frame: {
+        shape: el("shape").value,
+        width: Number(el("frameWidth").value),
+        height: Number(el("frameHeight").value),
+      },
+      minZoom: Number(el("minZoom").value),
+      maxZoom: Number(el("maxZoom").value),
+      rotatable: el("rotatable").checked,
+      flippable: el("flippable").checked,
+      resizableFrame: el("resizableFrame").checked,
+      mouseWheelZoom: readMouseWheelZoom(),
+      useExifOrientation: el("useExifOrientation").checked,
+      autoSizeStage: el("autoSizeStage").checked,
+      showZoomer: el("showZoomer").checked,
+      zoomerPosition: el("zoomerPosition").value,
+    };
+  }
+
+  function readFilters() {
+    return {
+      brightness: Number(el("brightness").value),
+      contrast: Number(el("contrast").value),
+      saturation: Number(el("saturation").value),
+      grayscale: el("grayscale").checked,
+      sepia: el("sepia").checked,
+    };
+  }
+
+  async function rebuild() {
+    if (cropper) cropper.destroy();
+    const options = readOptions();
+    options.filters = readFilters();
+    cropper = new Kiri(document.getElementById("cropper"), options);
+    el("options-dump").textContent = JSON.stringify(options, null, 2);
+    if (currentSource) await cropper.load(currentSource);
+  }
+
+  for (const id of constructorIds) {
+    el(id).addEventListener("change", rebuild);
+  }
+
+  for (const id of ["brightness", "contrast", "saturation"]) {
+    el(id).addEventListener("input", () => cropper && cropper.setFilters(readFilters()));
+  }
+  for (const id of ["grayscale", "sepia"]) {
+    el(id).addEventListener("change", () => cropper && cropper.setFilters(readFilters()));
+  }
+
+  el("file-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentSource = file;
+    if (cropper) await cropper.load(file);
+  });
+
+  el("export").addEventListener("click", async () => {
+    if (!cropper) return;
+    const dataUrl = await cropper.export({ type: "base64", format: "image/png" });
+    const output = el("output");
+    output.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = dataUrl;
+    output.appendChild(img);
+  });
+
+  rebuild();
+</script>
+</body>
+</html>

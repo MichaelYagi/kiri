@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Events — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html" class="active">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Events</h1>
+  <p class="lead">Kiri has one event today: <code>"change"</code>.</p>
+
+  <table>
+    <tr><th>Event</th><th>Fires when</th><th>Callback receives</th></tr>
+    <tr>
+      <td><code>"change"</code></td>
+      <td>Any time the state updates: dragging, zooming (wheel/pinch/slider),
+      rotating, flipping, resizing the frame, or <code>setFilters()</code>.
+      Also fires once after <code>load()</code> resolves.</td>
+      <td>The same <code>KiriState</code> snapshot <code>getState()</code>
+      returns: <code>{ zoom, offset, rotation, flip, filters }</code>.</td>
+    </tr>
+  </table>
+
+  <h2>Subscribing</h2>
+  <pre><code>cropper.on("change", (state) => {
+  console.log(state.zoom);
+});
+
+// later, if needed:
+cropper.off("change", myHandler);</code></pre>
+
+  <h2>A note on frequency</h2>
+  <p><code>"change"</code> fires on <strong>every</strong> pointermove while
+  dragging or every wheel tick while zooming — not just once at the end of a
+  gesture. If you're doing something expensive inside the handler (like
+  calling <code>export()</code>, which does a full canvas render), debounce
+  it rather than running on every single event:</p>
+  <pre><code>let timer;
+cropper.on("change", () => {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    const blob = await cropper.export({ type: "blob" });
+    // ...
+  }, 200);
+});</code></pre>
+
+  <div class="next-steps">Next: <a href="settings.html">Settings</a> — every constructor option.</div>
+</main>
+</body>
+</html>

@@ -24,7 +24,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && KIRI_MINIFY=false vite build && node -e \"const fs=require('fs'),css=fs.readFileSync('src/kiri.css','utf8');fs.writeFileSync('dist/kiri.css',css);fs.writeFileSync('dist/kiri.min.css',require('esbuild').transformSync(css,{loader:'css',minify:true}).code)\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "docs:api": "typedoc",
+    "docs:sync-dist": "node -e \"const fs=require('fs');fs.mkdirSync('../../docs/dist',{recursive:true});for(const f of ['kiri.min.js','kiri.min.css'])fs.copyFileSync('dist/'+f,'../../docs/dist/'+f)\"",
+    "docs:build": "npm run build && npm run docs:api && npm run docs:sync-dist"
   },
   "keywords": [
     "image",
@@ -35,6 +38,7 @@
   "license": "MIT",
   "devDependencies": {
     "jsdom": "^25.0.0",
+    "typedoc": "^0.28.20",
     "typescript": "^5.6.0",
     "vite": "^5.4.0",
     "vite-plugin-dts": "^4.2.0",

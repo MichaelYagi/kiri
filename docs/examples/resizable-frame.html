@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resizable frame — Kiri example</title>
+<link rel="stylesheet" href="../assets/site.css" />
+<link rel="stylesheet" href="../dist/kiri.min.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html" class="active">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Resizable frame</h1>
+  <p class="lead">Drag the small handle at the frame's bottom-right corner to resize it live.</p>
+
+  <div id="cropper"></div>
+
+  <div class="controls">
+    <span id="size"></span>
+  </div>
+</main>
+
+<script src="../dist/kiri.min.js"></script>
+<script>
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "rectangle", width: 200, height: 200 },
+    resizableFrame: true,
+  });
+  cropper.load("../assets/cat.jpg");
+
+  const sizeEl = document.getElementById("size");
+  function updateSize() {
+    const frame = document.querySelector("#cropper .kiri-frame");
+    sizeEl.textContent = `Frame: ${frame.offsetWidth} x ${frame.offsetHeight}`;
+  }
+  cropper.on("change", updateSize);
+  updateSize();
+</script>
+</body>
+</html>

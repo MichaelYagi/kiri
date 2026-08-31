@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Batch cropping — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html" class="active">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Batch cropping</h1>
+  <p class="lead"><code>KiriBatch</code> steps one shared <code>Kiri</code> instance through a queue of images.</p>
+
+  <p>One DOM/stage instance is reused across images — not one instance per
+  image — so every interaction you already know (drag, zoom, rotate, flip,
+  filters) works exactly the same, with no separate API to learn.</p>
+
+  <pre><code>import { KiriBatch } from "kiri";
+
+const batch = new KiriBatch(container, options, [
+  { source: fileA },
+  { source: fileB },
+]);
+
+while (await batch.next()) {
+  // batch.cropper now shows batch.current().source — let the user adjust it
+  // (drag/zoom/rotate/whatever), then capture it:
+  await batch.capture();
+}
+
+batch.results(); // all crops, in order
+batch.destroy();</code></pre>
+
+  <h2>Adding items later</h2>
+  <p>You don't have to pass the whole queue up front — <code>add()</code> appends to it:</p>
+  <pre><code>const batch = new KiriBatch(container, options);
+fileInput.addEventListener("change", () => {
+  for (const file of fileInput.files) batch.add({ source: file });
+});</code></pre>
+
+  <h2>A typical UI loop</h2>
+  <pre><code>nextButton.addEventListener("click", async () => {
+  const hasNext = await batch.next();
+  if (!hasNext) {
+    showResults(batch.results());
+    return;
+  }
+  statusEl.textContent = `Editing item ${batch.current().source.name}`;
+});
+
+captureButton.addEventListener("click", () => batch.capture());</code></pre>
+
+  <p>See the full method list on the <a href="methods.html">Methods</a> page,
+  and a working version on the <a href="../examples/batch-cropping.html">batch
+  cropping example</a>.</p>
+
+  <div class="next-steps">Next: <a href="architecture.html">Architecture</a>.</div>
+</main>
+</body>
+</html>

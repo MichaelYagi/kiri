@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Filters — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html" class="active">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Filters</h1>
+  <p class="lead">Brightness, contrast, saturation, grayscale, sepia — applied identically to the live preview and the exported image.</p>
+
+  <table>
+    <tr><th>Filter</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
+    <tr><td><code>brightness</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> = unchanged)</td><td><code>1</code></td></tr>
+    <tr><td><code>contrast</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> = unchanged)</td><td><code>1</code></td></tr>
+    <tr><td><code>saturation</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> = unchanged)</td><td><code>1</code></td></tr>
+    <tr><td><code>grayscale</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
+    <tr><td><code>sepia</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
+  </table>
+
+  <h2>Setting filters</h2>
+  <pre><code>// initial, via the constructor
+new Kiri(container, { filters: { sepia: true } });
+
+// afterward — merges into the current filters
+cropper.setFilters({ brightness: 1.2, grayscale: true });</code></pre>
+
+  <p><code>setFilters()</code> merges a partial update into the current
+  filters (fields you don't pass are left as they are), and clamps numeric
+  values to <code>&gt;= 0</code>.</p>
+
+  <h2>Why the preview and export always match</h2>
+  <p>Both the live preview and the canvas export apply the exact same CSS
+  <code>filter</code> string — the preview via the image element's
+  <code>style.filter</code>, the export via the canvas 2D context's
+  <code>ctx.filter</code> before drawing. Reusing the browser's own filter
+  implementation for both means they're guaranteed to match pixel-for-pixel,
+  with no separately hand-rolled brightness/contrast/saturation pixel math to
+  get subtly wrong.</p>
+
+  <div class="next-steps">Next: <a href="batch-cropping.html">Batch cropping</a>.</div>
+</main>
+</body>
+</html>

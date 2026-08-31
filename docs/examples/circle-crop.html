@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Circle crop — Kiri example</title>
+<link rel="stylesheet" href="../assets/site.css" />
+<link rel="stylesheet" href="../dist/kiri.min.css" />
+<style>
+  #output img {
+    background: repeating-conic-gradient(#ccc 0% 25%, white 0% 50%) 50% / 20px 20px;
+  }
+</style>
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html" class="active">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Circle crop</h1>
+  <p class="lead">A circular frame — exported with real transparent corners, not just a visual overlay.</p>
+
+  <div id="cropper"></div>
+
+  <div class="controls">
+    <button id="export">Export as PNG</button>
+  </div>
+
+  <p>The checkerboard behind the exported image below is the page's own
+  background pattern showing through — proof the PNG actually has an alpha
+  channel outside the circle, not just a white/black square.</p>
+
+  <div id="output"></div>
+</main>
+
+<script src="../dist/kiri.min.js"></script>
+<script>
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "circle", width: 200, height: 200 },
+  });
+  cropper.load("../assets/cat.jpg");
+
+  document.getElementById("export").addEventListener("click", async () => {
+    const dataUrl = await cropper.export({ type: "base64", format: "image/png" });
+    const output = document.getElementById("output");
+    output.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = dataUrl;
+    output.appendChild(img);
+  });
+</script>
+</body>
+</html>

@@ -12,20 +12,24 @@ export interface KiriBatchItem {
  * no per-image instance, no duplicated cropping logic.
  */
 export class KiriBatch {
+  /** The shared `Kiri` instance. Use its normal methods (drag/zoom/rotate/filters/etc.) to adjust the currently-loaded item. */
   readonly cropper: Kiri;
   private readonly items: KiriBatchItem[];
   private index = -1;
   private captures: ExportResult[] = [];
 
+  /** @param items An initial queue; more can be added later via `add()`. */
   constructor(container: HTMLElement, options: KiriOptions = {}, items: KiriBatchItem[] = []) {
     this.cropper = new Kiri(container, options);
     this.items = [...items];
   }
 
+  /** Appends an item to the queue. */
   add(item: KiriBatchItem): void {
     this.items.push(item);
   }
 
+  /** Total number of queued items. */
   get length(): number {
     return this.items.length;
   }
@@ -56,6 +60,7 @@ export class KiriBatch {
     return [...this.captures];
   }
 
+  /** Tears down the shared `Kiri` instance. */
   destroy(): void {
     this.cropper.destroy();
   }

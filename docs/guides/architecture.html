@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Architecture — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html" class="active">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Architecture</h1>
+  <p class="lead">The core concepts behind how Kiri is built.</p>
+
+  <h2>Stage, frame, image layer</h2>
+  <ul>
+    <li><strong>Stage</strong> — the outer bounding box the user sees. By
+    default (<code>autoSizeStage: true</code>) it sizes itself to the
+    frame's dimensions plus a small margin, so it looks right with zero CSS.
+    <code>autoSizeStage: false</code> reverts to filling its container via
+    CSS (100% width/height) instead.</li>
+    <li><strong>Frame</strong> — the fixed selection window inside the
+    stage; the region that gets exported. <code>"rectangle"</code> or
+    <code>"circle"</code>.</li>
+    <li><strong>Image layer</strong> — the source image, freely draggable
+    and zoomable behind the frame.</li>
+  </ul>
+
+  <h2>Circle frames are a real clip, not just an overlay</h2>
+  <p>On screen, the circle frame is a CSS <code>border-radius: 50%</code>
+  border plus a dimming overlay outside it — but <code>export()</code> and
+  <code>upload()</code> actually clip the rendered output to match, using a
+  canvas <code>ellipse()</code> clip path before the final draw. PNG/WebP
+  exports get real transparent corners; JPEG has no alpha channel, so a
+  circle export as JPEG warns and renders solid black corners instead.</p>
+  <p>If <code>frame.width !== frame.height</code>, the "circle" is really an
+  ellipse (matching what <code>border-radius: 50%</code> does to a
+  non-square box) — the export follows exactly, inscribed in the same
+  width/height. Use equal <code>width</code>/<code>height</code> for a true
+  circle.</p>
+
+  <h2>Zoom clamping</h2>
+  <p>Zoom is always clamped so the image can never be smaller than the
+  frame — there's no option to disable this. The clamp math lives entirely
+  in pure functions (no DOM), which is what makes it fast to reason about
+  and to test.</p>
+
+  <h2>Filters: the browser does the pixel math</h2>
+  <p>Both the live preview and the canvas export apply the identical CSS
+  <code>filter</code> string, so they're guaranteed to match — see
+  <a href="filters.html">Filters</a>.</p>
+
+  <h2>Styling</h2>
+  <p>Kiri ships a real, separate stylesheet
+  (<code>kiri.css</code>/<code>kiri.min.css</code>) rather than injecting a
+  <code>&lt;style&gt;</code> tag at runtime — standard, CSP-safe, and easy to
+  override or theme.</p>
+
+  <h2>Builds</h2>
+  <p><code>kiri.mjs</code> (ESM, for bundlers), <code>kiri.js</code>/
+  <code>kiri.min.js</code> (UMD/CJS, for <code>&lt;script&gt;</code> tags or
+  <code>require()</code>). The package has no top-level
+  <code>"type": "module"</code>, so a bare <code>.js</code> file defaults to
+  CommonJS (matching the UMD build's actual content) while <code>.mjs</code>
+  is always ESM — this avoids a dual-package hazard a plain <code>.js</code>
+  UMD file would otherwise hit.</p>
+
+  <div class="next-steps">Next: <a href="../examples/index.html">Examples</a> — see it all in a browser.</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Built-in zoom slider — Kiri example</title>
+<link rel="stylesheet" href="../assets/site.css" />
+<link rel="stylesheet" href="../dist/kiri.min.css" />
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  .cell h3 { margin-top: 0; }
+</style>
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html" class="active">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Built-in zoom slider</h1>
+  <p class="lead">All four <code>zoomerPosition</code> values, side by side. Identical behavior — only the placement differs.</p>
+
+  <div class="grid">
+    <div class="cell"><h3>bottom (default)</h3><div id="c-bottom"></div></div>
+    <div class="cell"><h3>top</h3><div id="c-top"></div></div>
+    <div class="cell"><h3>left</h3><div id="c-left"></div></div>
+    <div class="cell"><h3>right</h3><div id="c-right"></div></div>
+  </div>
+</main>
+
+<script src="../dist/kiri.min.js"></script>
+<script>
+  for (const position of ["bottom", "top", "left", "right"]) {
+    const cropper = new Kiri(document.getElementById("c-" + position), {
+      frame: { shape: "circle", width: 150, height: 150 },
+      showZoomer: true,
+      zoomerPosition: position,
+    });
+    cropper.load("../assets/cat.jpg");
+  }
+</script>
+</body>
+</html>

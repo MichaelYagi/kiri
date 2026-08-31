@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Settings — Kiri</title>
+<link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html" class="active">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Settings</h1>
+  <p class="lead">Every option, its valid values, and its default.</p>
+
+  <div class="note">Any option with a fixed set of valid string values
+  (<code>frame.shape</code>, <code>mouseWheelZoom</code>,
+  <code>zoomerPosition</code>, and <code>export()</code>/<code>upload()</code>'s
+  <code>type</code>/<code>format</code>) is validated at <strong>runtime</strong>,
+  not just via TypeScript types. A typo like <code>zoomerPosition: "bttom"</code>
+  logs a <code>console.warn</code> naming the bad value and the valid options,
+  then falls back to the default — it never silently misbehaves.</div>
+
+  <h2 id="constructor">Constructor options</h2>
+  <pre><code>new Kiri(container, {
+  frame: { shape: "circle", width: 200, height: 200 },
+  minZoom: 1,
+  maxZoom: 4,
+  rotatable: true,
+  flippable: true,
+  resizableFrame: false,
+  mouseWheelZoom: true,       // or "ctrl" to require Ctrl+wheel
+  useExifOrientation: true,
+  autoSizeStage: true,
+  showZoomer: false,
+  zoomerPosition: "bottom",   // "top" | "bottom" | "left" | "right"
+  filters: { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false },
+  uploader: undefined,
+});</code></pre>
+
+  <table>
+    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
+    <tr><td><code>frame.shape</code></td><td>string</td><td><code>"rectangle"</code>, <code>"circle"</code></td><td><code>"rectangle"</code></td></tr>
+    <tr><td><code>frame.width</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td></tr>
+    <tr><td><code>frame.height</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td></tr>
+    <tr><td><code>minZoom</code></td><td>number</td><td>any positive number ≤ <code>maxZoom</code></td><td><code>1</code></td></tr>
+    <tr><td><code>maxZoom</code></td><td>number</td><td>any positive number ≥ <code>minZoom</code></td><td><code>4</code></td></tr>
+    <tr><td><code>rotatable</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
+    <tr><td><code>flippable</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
+    <tr><td><code>resizableFrame</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
+    <tr><td><code>mouseWheelZoom</code></td><td>boolean | string</td><td><code>true</code>, <code>false</code>, <code>"ctrl"</code></td><td><code>true</code></td></tr>
+    <tr><td><code>useExifOrientation</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
+    <tr><td><code>autoSizeStage</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
+    <tr><td><code>showZoomer</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
+    <tr><td><code>zoomerPosition</code></td><td>string</td><td><code>"top"</code>, <code>"bottom"</code>, <code>"left"</code>, <code>"right"</code></td><td><code>"bottom"</code></td></tr>
+    <tr><td><code>filters.*</code></td><td>—</td><td>see <a href="filters.html">Filters</a></td><td>—</td></tr>
+    <tr><td><code>uploader</code></td><td>function</td><td><code>(blob, options &amp; {url}) =&gt; Promise&lt;unknown&gt;</code></td><td>none — falls back to the built-in FormData/fetch uploader</td></tr>
+  </table>
+
+  <p><strong><code>autoSizeStage</code></strong>: when <code>true</code>
+  (default), the stage sizes itself to the frame's dimensions plus a 20px
+  margin on each axis — no CSS required on the container. Set
+  <code>false</code> to have the stage fill its container instead (100%
+  width/height via CSS), for embedding in a layout where you want to control
+  the stage's size directly.</p>
+
+  <h2 id="load">load() options</h2>
+  <table>
+    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
+    <tr><td><code>zoom</code></td><td>number</td><td>clamped to <code>[minZoom, maxZoom]</code></td><td><code>minZoom</code></td></tr>
+    <tr><td><code>offset.x</code> / <code>offset.y</code></td><td>number</td><td>clamped so the frame stays covered</td><td><code>0</code></td></tr>
+    <tr><td><code>rotation</code></td><td>number (degrees)</td><td>snapped to the nearest 90°</td><td><code>0</code></td></tr>
+    <tr><td><code>flip.horizontal</code> / <code>flip.vertical</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
+  </table>
+
+  <h2 id="export">export() / upload() options</h2>
+  <p><code>upload(url, options)</code> takes everything <code>export()</code>
+  does, plus a few upload-only fields.</p>
+  <table>
+    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
+    <tr><td><code>type</code></td><td>string</td><td><code>"base64"</code>, <code>"blob"</code>, <code>"canvas"</code></td><td><code>"base64"</code></td></tr>
+    <tr><td><code>format</code></td><td>string</td><td><code>"image/jpeg"</code>, <code>"image/png"</code>, <code>"image/webp"</code></td><td><code>"image/png"</code></td></tr>
+    <tr><td><code>quality</code></td><td>number</td><td><code>0</code>–<code>1</code> (jpeg/webp only)</td><td>browser default</td></tr>
+    <tr><td><code>width</code></td><td>number</td><td>any positive pixel size</td><td>frame width</td></tr>
+    <tr><td><code>height</code></td><td>number</td><td>any positive pixel size</td><td>frame height</td></tr>
+    <tr><td><code>fieldName</code> <em>(upload only)</em></td><td>string</td><td>any</td><td><code>"file"</code></td></tr>
+    <tr><td><code>fileName</code> <em>(upload only)</em></td><td>string</td><td>any</td><td><code>"crop.&lt;ext&gt;"</code>, from <code>format</code></td></tr>
+    <tr><td><code>extraFields</code> <em>(upload only)</em></td><td>object</td><td>any <code>Record&lt;string,string&gt;</code></td><td><code>{}</code></td></tr>
+    <tr><td><code>fetchOptions</code> <em>(upload only)</em></td><td>object</td><td>any valid fetch init</td><td><code>{}</code></td></tr>
+    <tr><td><code>uploader</code> <em>(upload only)</em></td><td>function</td><td>same shape as the constructor option</td><td>the constructor's <code>uploader</code>, or the built-in one</td></tr>
+  </table>
+
+  <div class="note"><code>frame.shape: "circle"</code> + <code>format: "image/jpeg"</code>
+  logs a <code>console.warn</code> — JPEG has no alpha channel, so the area
+  outside the circle renders solid black instead of transparent. Use
+  <code>"image/png"</code> or <code>"image/webp"</code> for a circle crop
+  with a transparent background.</div>
+
+  <div class="next-steps">Next: <a href="filters.html">Filters</a>.</div>
+</main>
+</body>
+</html>

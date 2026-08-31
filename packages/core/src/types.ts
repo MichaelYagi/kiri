@@ -16,6 +16,7 @@ export interface Flip {
   vertical: boolean;
 }
 
+/** Brightness/contrast/saturation are `>= 0`, where `1` means unchanged. */
 export interface Filters {
   brightness: number;
   contrast: number;
@@ -24,6 +25,7 @@ export interface Filters {
   sepia: boolean;
 }
 
+/** A custom upload implementation, for `KiriOptions.uploader` or `UploadOptions.uploader`. */
 export type Uploader = (
   blob: Blob,
   options: UploadOptions & { url: string }
@@ -31,18 +33,30 @@ export type Uploader = (
 
 export interface KiriOptions {
   frame?: {
+    /** Default `"rectangle"`. `"circle"` is a real clip on export, not just a visual overlay. */
     shape?: FrameShape;
+    /** Pixels. Default `200`. */
     width?: number;
+    /** Pixels. Default `200`. */
     height?: number;
   };
+  /** Default `1`. */
   minZoom?: number;
+  /** Default `4`. */
   maxZoom?: number;
+  /** Default `true`. */
   rotatable?: boolean;
+  /** Default `true`. */
   flippable?: boolean;
+  /** Adds a drag handle at the frame's corner. Default `false`. */
   resizableFrame?: boolean;
+  /** `"ctrl"` requires holding Ctrl while scrolling to zoom. Default `true`. */
   mouseWheelZoom?: boolean | "ctrl";
+  /** Corrects rotation + horizontal flip from EXIF data on `File`/`Blob` sources. Default `true`. */
   useExifOrientation?: boolean;
+  /** Initial filter values; see {@link Filters}. */
   filters?: Partial<Filters>;
+  /** A custom upload implementation, used by `upload()` unless overridden per-call. */
   uploader?: Uploader;
   /**
    * When true (default), the stage sizes itself to the frame's dimensions
@@ -58,6 +72,7 @@ export interface KiriOptions {
   zoomerPosition?: ZoomerPosition;
 }
 
+/** The full mutable state of a `Kiri` instance, as returned by `getState()`. */
 export interface KiriState {
   zoom: number;
   offset: Offset;
@@ -66,33 +81,51 @@ export interface KiriState {
   filters: Filters;
 }
 
+/** Options for `load()`. */
 export interface LoadOptions {
+  /** Clamped to `[minZoom, maxZoom]`. Default `minZoom`. */
   zoom?: number;
+  /** Clamped so the frame stays covered by the image. Default `{ x: 0, y: 0 }`. */
   offset?: Offset;
+  /** Degrees, snapped to the nearest 90°. Default `0`. */
   rotation?: number;
+  /** Default `{ horizontal: false, vertical: false }`. */
   flip?: Partial<Flip>;
 }
 
 export type ExportType = "base64" | "blob" | "canvas";
 export type ExportFormat = "image/jpeg" | "image/png" | "image/webp";
 
+/** Options for `export()`. */
 export interface ExportOptions {
+  /** Default `"base64"` (a data URL string). */
   type?: ExportType;
+  /** Default `"image/png"`. A circle frame exported as `"image/jpeg"` warns — JPEG has no alpha channel. */
   format?: ExportFormat;
+  /** `0`-`1`. Only meaningful for `"image/jpeg"`/`"image/webp"`. Default: browser default. */
   quality?: number;
+  /** Output pixel width. Default: the frame's width. */
   width?: number;
+  /** Output pixel height. Default: the frame's height. */
   height?: number;
 }
 
+/** Options for `upload()` — everything `export()` takes, plus these. */
 export interface UploadOptions extends ExportOptions {
+  /** The FormData field name. Default `"file"`. */
   fieldName?: string;
+  /** Default: `"crop.<ext>"`, extension derived from `format`. */
   fileName?: string;
+  /** Extra FormData fields to send alongside the file. Default `{}`. */
   extraFields?: Record<string, string>;
+  /** Merged into the underlying `fetch()` call (method/body are always overridden). Default `{}`. */
   fetchOptions?: RequestInit;
+  /** Overrides the constructor's `uploader` for this call only. */
   uploader?: Uploader;
 }
 
 export type ExportResult = string | Blob | HTMLCanvasElement;
 
 export type KiriEventName = "change";
+/** Receives the same snapshot `getState()` returns. */
 export type KiriEventCallback = (state: KiriState) => void;

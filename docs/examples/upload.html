@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upload — Kiri example</title>
+<link rel="stylesheet" href="../assets/site.css" />
+<link rel="stylesheet" href="../dist/kiri.min.css" />
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html" class="active">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Upload</h1>
+  <p class="lead">Exports the crop and POSTs it as <code>FormData</code> to a URL you provide.</p>
+
+  <p>This example makes a real network request — point it at any endpoint
+  that accepts a <code>multipart/form-data</code> POST (a local test
+  server, a webhook tester like <a href="https://httpbin.org/#/HTTP_Methods/post_post" target="_blank" rel="noreferrer">httpbin.org/post</a>,
+  or your own backend).</p>
+
+  <div id="cropper"></div>
+
+  <div class="controls">
+    <input id="upload-url" type="text" placeholder="https://httpbin.org/post" style="flex: 1; min-width: 260px" />
+    <button id="upload">Upload crop</button>
+    <span id="status"></span>
+  </div>
+</main>
+
+<script src="../dist/kiri.min.js"></script>
+<script>
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "rectangle", width: 240, height: 180 },
+  });
+  cropper.load("../assets/cat.jpg");
+
+  document.getElementById("upload").addEventListener("click", async () => {
+    const url = document.getElementById("upload-url").value.trim();
+    const statusEl = document.getElementById("status");
+    if (!url) {
+      statusEl.textContent = "Enter an upload URL first.";
+      return;
+    }
+    statusEl.textContent = "Uploading…";
+    try {
+      const response = await cropper.upload(url, { format: "image/png" });
+      statusEl.textContent = `Uploaded (status ${response.status})`;
+    } catch (err) {
+      statusEl.textContent = `Upload failed: ${err.message}`;
+    }
+  });
+</script>
+</body>
+</html>
