@@ -245,8 +245,9 @@ options)` regardless of backend.
 
 ### Batch cropping
 
-Not a shipped class — a documented recipe (`docs/guides/batch-cropping.html`)
-built entirely on public `Kiri` methods plus a plain array for the queue.
+Not a shipped class — a documented recipe (the "Batch cropping" section of
+`docs/guides/methods.html`) built entirely on public `Kiri` methods plus a
+plain array for the queue.
 One DOM/stage instance is reused across images, not one instance per image,
 so every existing interaction (drag/zoom/rotate/flip/filters) needs no
 changes. This used to be a `KiriBatch` class shipped in core; it was removed

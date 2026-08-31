@@ -15,7 +15,6 @@
   <a href="../guides/events.html">Events</a>
   <a href="../guides/settings.html">Settings</a>
   <a href="../guides/filters.html">Filters</a>
-  <a href="../guides/batch-cropping.html">Batch cropping</a>
   <a href="../guides/architecture.html">Architecture</a>
   <a href="../examples/index.html">Examples</a>
   <a href="../playground/index.html">Playground</a>
@@ -48,12 +47,66 @@
 
   <p class="pg-hint">The stage itself is keyboard-accessible once focused (tab to it, or click it): arrow keys pan via <code>setOffset()</code>, <code>+</code>/<code>-</code> zoom via <code>setZoom()</code>, and <code>0</code> calls <code>reset()</code>.</p>
 
-  <h2>Batch cropping</h2>
-  <p>Stepping one shared <code>Kiri</code> instance through a queue of images
-  isn't a separate class — it's a small recipe built on the methods above
-  (mainly <code>load()</code> and <code>export()</code>) plus a plain array
-  for the queue. Full walkthrough: <a href="batch-cropping.html">Batch
-  cropping</a>.</p>
+  <h2 id="batch-cropping">Batch cropping</h2>
+  <p>Stepping one shared <code>Kiri</code> instance through a queue of
+  images isn't a separate class — it's a small recipe built entirely on the
+  methods above (mainly <code>load()</code> and <code>export()</code>) plus
+  a plain array for the queue. One DOM/stage instance is reused across
+  images, not one instance per image, so every interaction you already know
+  (drag, zoom, rotate, flip, filters) works exactly the same, with no
+  separate API to learn.</p>
+
+  <pre><code>import { Kiri } from "@michaelyagi/kiri";
+
+const items = [];   // { source, loadOptions? }
+let index = -1;
+const captures = [];
+
+const cropper = new Kiri(container, options);
+
+async function next() {
+  if (index + 1 >= items.length) return false;
+  index += 1;
+  await cropper.load(items[index].source, items[index].loadOptions);
+  return true;
+}
+
+async function previous() {
+  if (index <= 0) return false;
+  index -= 1;
+  await cropper.load(items[index].source, items[index].loadOptions);
+  return true;
+}
+
+async function capture(exportOptions) {
+  const result = await cropper.export(exportOptions);
+  captures[index] = result;
+  return result;
+}</code></pre>
+
+  <pre><code>items.push({ source: fileA }, { source: fileB });
+
+while (await next()) {
+  // cropper now shows items[index].source — let the user adjust it
+  // (drag/zoom/rotate/whatever), then capture it:
+  await capture();
+}
+
+captures; // all crops, in order
+cropper.destroy();</code></pre>
+
+  <p>You don't have to build the whole queue up front — it's just an array,
+  so push to it whenever, e.g. from a file input's <code>change</code>
+  event: <code>for (const file of fileInput.files) items.push({ source: file });</code>.
+  <code>previous()</code> mirrors <code>next()</code> — it steps
+  <code>cropper</code> back one item and returns <code>false</code> (without
+  moving) once <code>index</code> is already <code>0</code>, so a "Back"
+  button can disable itself the same way a "Next" button does at the end of
+  the queue.</p>
+
+  <p>See a working version on the <a href="../examples/batch-cropping.html">batch
+  cropping example</a> — it's this exact recipe, copy-pasted into a real
+  page.</p>
 
   <div class="next-steps">Next: <a href="events.html">Events</a> — what fires and when.</div>
 </main>

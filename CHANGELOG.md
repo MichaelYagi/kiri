@@ -8,7 +8,7 @@ all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 - **Breaking:** Removed the `KiriBatch` class. It was a thin wrapper around
   a plain array (queue) + index + a shared `Kiri` instance, adding no real
   logic of its own — that bookkeeping is now a documented recipe instead
-  (see the [Batch cropping guide](https://michaelyagi.github.io/kiri/guides/batch-cropping.html)),
+  (see the [Batch cropping section](https://michaelyagi.github.io/kiri/guides/methods.html#batch-cropping) of the Methods guide),
   built entirely on public `Kiri` methods (`load()`, `export()`). If you were
   using `KiriBatch`, replace it with the recipe: a plain array of
   `{ source, loadOptions? }` items, an index variable, and `next()`/
