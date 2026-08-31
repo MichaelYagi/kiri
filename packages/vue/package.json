@@ -1,6 +1,6 @@
 {
   "name": "kiri-vue",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "description": "Vue wrapper component for the Kiri image cropper.",
   "type": "module",
   "main": "./dist/kiri-vue.cjs",
@@ -24,7 +24,7 @@
     "vue": ">=3"
   },
   "dependencies": {
-    "kiri": "^0.1.0"
+    "kiri": "^0.1.0-alpha.1"
   },
   "devDependencies": {
     "jsdom": "^25.0.0",

@@ -17,11 +17,15 @@ messages.
 
 ## Status
 
-v1 (full parity) plus the extended feature set is implemented: filters
+Released as `0.1.0-alpha.1` (all three packages, in lockstep) — not yet
+published to npm. See `CHANGELOG.md` for what's in this release. v1 (full
+parity) plus the extended feature set is implemented: filters
 (brightness/contrast/saturation/grayscale/sepia), `upload()`, `KiriBatch`
-(multi-image queue), and the React/Vue wrapper packages. See `design.md`'s
-"Extended features" section for each API. Treat `design.md` as the source of
-truth for the intended API; update it alongside any design decisions that change.
+(multi-image queue), a built-in zoom slider, and the React/Vue wrapper
+packages. See `design.md`'s "Extended features" section for each API. Treat
+`design.md` as the source of truth for the intended API; update it alongside
+any design decisions that change, and add a `CHANGELOG.md` entry for the next
+version whenever a release-worthy change lands.
 
 ## Stack & tooling
 

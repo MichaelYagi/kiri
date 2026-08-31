@@ -32,8 +32,12 @@ library — no code, naming, or documentation from any other project is reused.
 - **Frame** — the fixed selection window inside the stage (the region that gets
   exported). Shape: `"rectangle"` or `"circle"`. `"circle"` isn't just a
   visual overlay in the browser — `export()`/`upload()` actually clip the
-  output to a circle too (transparent corners on PNG/WebP; JPEG has no alpha
+  output to match (transparent corners on PNG/WebP; JPEG has no alpha
   channel, so circle + JPEG warns and renders solid black corners instead).
+  If `frame.width !== frame.height`, `"circle"` renders as an ellipse
+  (matching `border-radius: 50%` on a non-square box) rather than a true
+  circle, and the export follows exactly — inscribed in the same
+  width/height. Use equal `width`/`height` for a true circle.
 - **Image layer** — the source image, freely draggable and zoomable behind the frame.
 
 (These names replace the original library's "boundary"/"viewport" terminology,

@@ -20,9 +20,14 @@ See [design.md](./design.md) for the full design document and public API.
 
 ## Status
 
+**`0.1.0-alpha.1`** — first alpha release. Not yet published to npm (see
+[CHANGELOG.md](./CHANGELOG.md) for what's in this release); install from this
+repo (npm workspaces) until then. The public API is expected to be mostly
+stable but may still change before a `0.1.0` (non-alpha) release.
+
 v1 (drag/zoom/rotate/flip/resizable-frame/EXIF/export) plus filters, `upload()`,
-multi-image batching (`KiriBatch`), and the React/Vue wrappers are all
-implemented and covered by each package's Vitest suite.
+multi-image batching (`KiriBatch`), a built-in zoom slider, and the React/Vue
+wrappers are all implemented and covered by each package's Vitest suite.
 
 ## Usage
 
