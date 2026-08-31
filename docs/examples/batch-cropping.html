@@ -27,9 +27,8 @@
   <h1>Batch cropping</h1>
   <p class="lead">One shared cropper, stepped through a queue of images.</p>
 
-  <p>The queue starts with the sample photo (loaded twice, so you can see
-  <code>next()</code> actually advance) — pick your own files below to try a
-  real batch.</p>
+  <p>The queue starts with two sample photos — pick your own files below to
+  try a real batch.</p>
 
   <input id="file-input" type="file" accept="image/*" multiple />
   <div id="cropper"></div>
@@ -50,7 +49,7 @@
   const batch = new KiriBatch(
     document.getElementById("cropper"),
     { frame: { shape: "rectangle", width: 220, height: 160 } },
-    [{ source: "../assets/cat.jpg" }, { source: "../assets/cat.jpg" }]
+    [{ source: "../assets/cat.jpg" }, { source: "../assets/beach.jpg" }]
   );
 
   const statusEl = document.getElementById("status");
