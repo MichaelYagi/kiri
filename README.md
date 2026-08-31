@@ -57,7 +57,12 @@ cropper.setFilters({ brightness: 1.2, grayscale: true });
 
 const blob = await cropper.export({ type: "blob", format: "image/png" });
 await cropper.upload("https://example.com/upload"); // or pass a custom `uploader`
+
+cropper.destroy(); // removes all event listeners and clears the container's markup
 ```
+
+Full method list (including every option each one takes) is in
+[design.md](./design.md#methods-reference).
 
 #### Built-in zoom slider
 

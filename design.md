@@ -94,6 +94,22 @@ cropper.on("change", (state) => { /* fires on drag/zoom/rotate/flip/filters */ }
 cropper.destroy();
 ```
 
+### Methods reference
+
+| Method | Returns | Description |
+|---|---|---|
+| `load(source, options?)` | `Promise<void>` | Loads a `File`, `Blob`, or URL string. See the `load()` options table below. |
+| `getState()` | `KiriState` | Current `{ zoom, offset, rotation, flip, filters }` snapshot (a copy — mutating it has no effect). |
+| `setZoom(zoom)` | `void` | Absolute zoom, clamped to `[minZoom, maxZoom]`. |
+| `rotate(deltaDeg)` | `void` | Relative rotation, snapped to the nearest 90°. No-op if `rotatable: false`. |
+| `flipHorizontal()` / `flipVertical()` | `void` | Toggles. No-op if `flippable: false`. |
+| `setFrameSize(width, height)` | `void` | Resizes the frame (and the stage too, if `autoSizeStage`). Clamped to a 20px minimum per axis. |
+| `setFilters(partial)` | `void` | Merges into the current filters; numeric values clamped to `>= 0`. |
+| `export(options?)` | `Promise<ExportResult>` | Renders the current crop. See the `export()` options table below. |
+| `upload(url, options?)` | `Promise<unknown>` | Exports as a blob, then uploads it (default: FormData/fetch; or a custom `uploader`). |
+| `on("change", cb)` / `off("change", cb)` | `void` | Subscribe/unsubscribe to state-change events (fires on drag/zoom/rotate/flip/filter changes). |
+| `destroy()` | `void` | Tears the instance down: removes all pointer/wheel event listeners (drag/zoom gestures), the resize-handle listener (if `resizableFrame`), and the zoom-slider listener (if `showZoomer`); clears the container's `innerHTML` (removing the stage/frame/image/zoomer markup entirely, leaving an empty container element); and clears all `"change"` listeners. Call this when you're done with an instance (e.g. unmounting) to avoid leaking listeners. `KiriBatch.destroy()` does the same for its underlying shared `Kiri` instance. |
+
 ### Options reference
 
 Every constructor option, its type, valid values, and default.
