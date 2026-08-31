@@ -99,6 +99,20 @@ truth for the intended API; update it alongside any design decisions that change
   the single shared implementation — reach for it (not an ad-hoc `??`) for
   any new string-enum option. `frame.shape`'s values are `"rectangle"` /
   `"circle"` — spelled out in full, no abbreviations in the public API.
+- Circle export: `frame.shape: "circle"` used to be purely a `stage.ts`
+  visual overlay (`.kiri-frame--circle`'s `border-radius: 50%` on the frame
+  border/dimming) — `export()`/`upload()` always produced a plain rectangle
+  regardless of shape, since `exportCrop()`/`renderCropToCanvas()` in
+  `export.ts` never received the shape at all. Fixed by threading
+  `frame.shape` through both (from `Kiri.export()`'s `this.opts.frame.shape`)
+  and clipping the output canvas to an ellipse (`ctx.ellipse()` +
+  `ctx.clip()`, inscribed in the output width/height) before the final
+  `drawImage`. `format: "image/jpeg"` has no alpha channel, so a circle
+  export as JPEG renders solid black outside the circle instead of
+  transparent — `exportCrop()` `console.warn`s on that specific combination.
+  Verified in a real browser via pixel-level `getImageData` (corner alpha 0,
+  center alpha 255) — this can't be tested in jsdom, which has no real 2D
+  canvas context.
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

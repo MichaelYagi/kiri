@@ -30,7 +30,10 @@ library — no code, naming, or documentation from any other project is reused.
   container's own CSS instead (100% width/height), for embedding in a
   layout where the consumer wants to control the stage's size directly.
 - **Frame** — the fixed selection window inside the stage (the region that gets
-  exported). Shape: `"rectangle"` or `"circle"`.
+  exported). Shape: `"rectangle"` or `"circle"`. `"circle"` isn't just a
+  visual overlay in the browser — `export()`/`upload()` actually clip the
+  output to a circle too (transparent corners on PNG/WebP; JPEG has no alpha
+  channel, so circle + JPEG warns and renders solid black corners instead).
 - **Image layer** — the source image, freely draggable and zoomable behind the frame.
 
 (These names replace the original library's "boundary"/"viewport" terminology,
@@ -143,6 +146,11 @@ default rather than silently misbehaving. `resolveEnumOption()` in
 | `fileName` *(upload only)* | string | any | `"crop.<ext>"`, ext from `format` |
 | `extraFields` *(upload only)* | `Record<string,string>` | any | `{}` |
 | `fetchOptions` *(upload only)* | `RequestInit` | any valid fetch init | `{}` |
+
+> `frame.shape: "circle"` + `format: "image/jpeg"` logs a `console.warn` —
+> JPEG has no alpha channel, so the area outside the circle renders solid
+> black instead of transparent. Use `"image/png"` or `"image/webp"` for a
+> circle crop with a transparent background.
 | `uploader` *(upload only)* | function | same shape as the constructor option | the constructor's `uploader`, or the built-in one |
 
 ### API naming rationale (vs. the API this project intentionally departs from)

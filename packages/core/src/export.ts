@@ -1,4 +1,12 @@
-import type { ExportFormat, ExportOptions, ExportResult, ExportType, KiriState, Offset } from "./types";
+import type {
+  ExportFormat,
+  ExportOptions,
+  ExportResult,
+  ExportType,
+  FrameShape,
+  KiriState,
+  Offset,
+} from "./types";
 import { computeCoverScale, effectiveRenderedSize, type Size } from "./gestures";
 import { buildFilterString } from "./filters";
 import { resolveEnumOption } from "./validate";
@@ -30,7 +38,8 @@ export function renderCropToCanvas(
   state: KiriState,
   frame: Size,
   outputWidth: number,
-  outputHeight: number
+  outputHeight: number,
+  frameShape: FrameShape
 ): HTMLCanvasElement {
   const natural: Size = { width: img.naturalWidth, height: img.naturalHeight };
   const scale = computeCoverScale(natural, frame, state.rotation) * state.zoom;
@@ -64,6 +73,27 @@ export function renderCropToCanvas(
   outCanvas.height = outputHeight;
   const octx = outCanvas.getContext("2d");
   if (!octx) throw new Error("Kiri: unable to get 2D canvas context");
+
+  // The circle frame is otherwise just a visual overlay (stage.ts's
+  // .kiri-frame--circle border) — without this, the export would always be
+  // a plain rectangle regardless of frame.shape. Clipping to an ellipse
+  // inscribed in the output canvas matches what's visible on screen even
+  // when a custom output width/height changes its aspect ratio.
+  if (frameShape === "circle") {
+    octx.save();
+    octx.beginPath();
+    octx.ellipse(
+      outputWidth / 2,
+      outputHeight / 2,
+      outputWidth / 2,
+      outputHeight / 2,
+      0,
+      0,
+      Math.PI * 2
+    );
+    octx.clip();
+  }
+
   octx.drawImage(
     sourceCanvas,
     frameLeft,
@@ -75,6 +105,9 @@ export function renderCropToCanvas(
     outputWidth,
     outputHeight
   );
+
+  if (frameShape === "circle") octx.restore();
+
   return outCanvas;
 }
 
@@ -82,6 +115,7 @@ export async function exportCrop(
   img: HTMLImageElement,
   state: KiriState,
   frame: Size,
+  frameShape: FrameShape,
   options: ExportOptions
 ): Promise<ExportResult> {
   const type = resolveEnumOption(options.type, VALID_EXPORT_TYPES, "base64", "export type");
@@ -90,7 +124,15 @@ export async function exportCrop(
   const width = options.width ?? frame.width;
   const height = options.height ?? frame.height;
 
-  const canvas = renderCropToCanvas(img, state, frame, width, height);
+  if (frameShape === "circle" && format === "image/jpeg") {
+    console.warn(
+      "Kiri: exporting a circle-shaped frame as image/jpeg — JPEG has no " +
+        "alpha channel, so the area outside the circle will render as solid " +
+        "black instead of transparent. Use image/png or image/webp instead."
+    );
+  }
+
+  const canvas = renderCropToCanvas(img, state, frame, width, height, frameShape);
 
   if (type === "canvas") return canvas;
   if (type === "base64") return canvas.toDataURL(format, quality);

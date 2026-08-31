@@ -40,7 +40,7 @@ describe("exportCrop option validation", () => {
     // jsdom has no real 2D canvas context, so this rejects downstream —
     // the validation warning fires before that point, which is what's
     // under test here.
-    await exportCrop(img, state, { width: 10, height: 10 }, {
+    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", {
       type: "svg" as never,
     }).catch(() => {});
 
@@ -52,11 +52,35 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, {
+    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", {
       format: "image/gif" as never,
     }).catch(() => {});
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/invalid export format "image\/gif"/));
+    warnSpy.mockRestore();
+  });
+
+  it("warns when exporting a circle frame as JPEG (no alpha channel -> black corners)", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const img = document.createElement("img");
+
+    await exportCrop(img, state, { width: 10, height: 10 }, "circle", {
+      format: "image/jpeg",
+    }).catch(() => {});
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/circle-shaped frame as image\/jpeg/));
+    warnSpy.mockRestore();
+  });
+
+  it("does not warn for a circle frame exported as PNG", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const img = document.createElement("img");
+
+    await exportCrop(img, state, { width: 10, height: 10 }, "circle", {
+      format: "image/png",
+    }).catch(() => {});
+
+    expect(warnSpy).not.toHaveBeenCalled();
     warnSpy.mockRestore();
   });
 });

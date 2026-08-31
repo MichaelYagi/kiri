@@ -277,7 +277,13 @@ export class Kiri {
   }
 
   async export(options: ExportOptions = {}): Promise<ExportResult> {
-    return exportCrop(this.stage.imgEl, this.state, this.getFrameSize(), options);
+    return exportCrop(
+      this.stage.imgEl,
+      this.state,
+      this.getFrameSize(),
+      this.opts.frame.shape,
+      options
+    );
   }
 
   async upload(url: string, options: UploadOptions = {}): Promise<unknown> {
