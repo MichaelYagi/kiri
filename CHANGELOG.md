@@ -3,13 +3,23 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
-## Unreleased
+## 0.1.0-alpha.2
 
 - Core is now published to npm as **`@michaelyagi/kiri`** (renamed from the
   unscoped `kiri`) — `kiri-react`/`kiri-vue` stay unpublished for now, and
   keep their unscoped internal names.
 - Publishing is automated: `.github/workflows/publish.yml` builds, tests, and
-  runs `npm publish` on any `v*` git tag push.
+  runs `npm publish --provenance` on any `v*` git tag push, authenticated via
+  an `NPM_TOKEN` repo secret.
+- Added a full documentation site at
+  [michaelyagi.github.io/kiri](https://michaelyagi.github.io/kiri): guides
+  (getting started, methods, events, settings, filters, batch cropping,
+  architecture), seven real runnable examples, an interactive playground
+  covering every option, and a TypeDoc-generated API reference.
+- The Settings guide's option tables now explain what each option actually
+  *does* (a Description column), not just its type/valid-values/default —
+  e.g. what happens when you set `rotatable: false`, not just that it's a
+  boolean.
 
 ## 0.1.0-alpha.1
 
