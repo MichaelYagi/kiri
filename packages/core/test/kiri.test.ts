@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Kiri } from "../src/kiri";
 
 describe("Kiri", () => {
@@ -139,6 +139,40 @@ describe("Kiri", () => {
     expect(container.innerHTML).toBe("");
   });
 
+  describe("invalid option values", () => {
+    it("falls back to rectangle and warns on an invalid frame.shape", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      new Kiri(container, { frame: { shape: "circl" as never } });
+
+      expect(container.querySelector(".kiri-frame--circle")).toBeNull();
+      expect(container.querySelector(".kiri-frame")).not.toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/invalid frame\.shape "circl"/));
+
+      warnSpy.mockRestore();
+    });
+
+    it("falls back to true and warns on an invalid mouseWheelZoom", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      new Kiri(container, { mouseWheelZoom: "ctrll" as never });
+
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/invalid mouseWheelZoom "ctrll"/));
+
+      warnSpy.mockRestore();
+    });
+
+    it("accepts valid mouseWheelZoom values without warning", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      new Kiri(container, { mouseWheelZoom: "ctrl" });
+      new Kiri(container, { mouseWheelZoom: false });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+  });
+
   describe("zoomer", () => {
     it("renders no zoomer by default", () => {
       new Kiri(container);
@@ -152,6 +186,18 @@ describe("Kiri", () => {
       const zoomer = container.querySelector(".kiri-zoomer") as HTMLInputElement;
       expect(zoomer).not.toBeNull();
       expect(zoomer.type).toBe("range");
+    });
+
+    it("falls back to bottom and warns on an invalid zoomerPosition", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      new Kiri(container, { showZoomer: true, zoomerPosition: "bttom" as never });
+
+      expect(container.querySelector(".kiri-root--bottom")).not.toBeNull();
+      expect(container.querySelector(".kiri-root--bttom")).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/invalid zoomerPosition "bttom"/));
+
+      warnSpy.mockRestore();
     });
 
     it("positions the zoomer per zoomerPosition", () => {

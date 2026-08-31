@@ -1,4 +1,4 @@
-export type FrameShape = "rect" | "circle";
+export type FrameShape = "rectangle" | "circle";
 export type ZoomerPosition = "top" | "bottom" | "left" | "right";
 
 export interface FrameSize {

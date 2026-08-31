@@ -1,6 +1,10 @@
-import type { ExportOptions, ExportResult, KiriState, Offset } from "./types";
+import type { ExportFormat, ExportOptions, ExportResult, ExportType, KiriState, Offset } from "./types";
 import { computeCoverScale, effectiveRenderedSize, type Size } from "./gestures";
 import { buildFilterString } from "./filters";
+import { resolveEnumOption } from "./validate";
+
+const VALID_EXPORT_TYPES: ExportType[] = ["base64", "blob", "canvas"];
+const VALID_EXPORT_FORMATS: ExportFormat[] = ["image/jpeg", "image/png", "image/webp"];
 
 /**
  * Top-left corner of the frame, in the local pixel space of the rendered
@@ -80,8 +84,8 @@ export async function exportCrop(
   frame: Size,
   options: ExportOptions
 ): Promise<ExportResult> {
-  const type = options.type ?? "base64";
-  const format = options.format ?? "image/png";
+  const type = resolveEnumOption(options.type, VALID_EXPORT_TYPES, "base64", "export type");
+  const format = resolveEnumOption(options.format, VALID_EXPORT_FORMATS, "image/png", "export format");
   const quality = options.quality;
   const width = options.width ?? frame.width;
   const height = options.height ?? frame.height;

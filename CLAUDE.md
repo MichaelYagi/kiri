@@ -89,6 +89,16 @@ truth for the intended API; update it alongside any design decisions that change
   `setZoom()` itself) — setting `.value` programmatically doesn't re-fire
   `"input"`, so there's no feedback loop. All positions are purely a CSS
   placement choice — identical zoom behavior in every position.
+- Option validation: any option with a fixed set of valid string values
+  (`frame.shape`, `mouseWheelZoom`, `zoomerPosition`, `export()`/`upload()`'s
+  `type`/`format`) is validated at *runtime*, not just via TypeScript types —
+  a JS consumer (or a typo bypassing the type checker, e.g.
+  `zoomerPosition: "bttom"`) gets a `console.warn` and a fallback to the
+  default rather than silently producing an unstyled `.kiri-root--bttom`
+  class with no matching CSS rule. `resolveEnumOption()` in `validate.ts` is
+  the single shared implementation — reach for it (not an ad-hoc `??`) for
+  any new string-enum option. `frame.shape`'s values are `"rectangle"` /
+  `"circle"` — spelled out in full, no abbreviations in the public API.
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

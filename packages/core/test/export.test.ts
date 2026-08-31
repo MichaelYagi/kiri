@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { computeFrameSourceRect } from "../src/export";
+import { describe, expect, it, vi } from "vitest";
+import { computeFrameSourceRect, exportCrop } from "../src/export";
+import type { KiriState } from "../src/types";
 
 describe("computeFrameSourceRect", () => {
   it("centers the frame on the rendered image when offset is zero", () => {
@@ -20,5 +21,42 @@ describe("computeFrameSourceRect", () => {
       { width: 100, height: 100 }
     );
     expect(rect).toEqual({ left: 30, top: 60 });
+  });
+});
+
+describe("exportCrop option validation", () => {
+  const state: KiriState = {
+    zoom: 1,
+    offset: { x: 0, y: 0 },
+    rotation: 0,
+    flip: { horizontal: false, vertical: false },
+    filters: { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false },
+  };
+
+  it("warns and falls back on an invalid export type", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const img = document.createElement("img");
+
+    // jsdom has no real 2D canvas context, so this rejects downstream —
+    // the validation warning fires before that point, which is what's
+    // under test here.
+    await exportCrop(img, state, { width: 10, height: 10 }, {
+      type: "svg" as never,
+    }).catch(() => {});
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/invalid export type "svg"/));
+    warnSpy.mockRestore();
+  });
+
+  it("warns and falls back on an invalid export format", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const img = document.createElement("img");
+
+    await exportCrop(img, state, { width: 10, height: 10 }, {
+      format: "image/gif" as never,
+    }).catch(() => {});
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/invalid export format "image\/gif"/));
+    warnSpy.mockRestore();
   });
 });

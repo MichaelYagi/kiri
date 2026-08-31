@@ -30,7 +30,7 @@ library — no code, naming, or documentation from any other project is reused.
   container's own CSS instead (100% width/height), for embedding in a
   layout where the consumer wants to control the stage's size directly.
 - **Frame** — the fixed selection window inside the stage (the region that gets
-  exported). Shape: `"rect"` or `"circle"`.
+  exported). Shape: `"rectangle"` or `"circle"`.
 - **Image layer** — the source image, freely draggable and zoomable behind the frame.
 
 (These names replace the original library's "boundary"/"viewport" terminology,
@@ -86,6 +86,64 @@ cropper.on("change", (state) => { /* fires on drag/zoom/rotate/flip/filters */ }
 
 cropper.destroy();
 ```
+
+### Options reference
+
+Every constructor option, its type, valid values, and default.
+
+| Option | Type | Valid values | Default |
+|---|---|---|---|
+| `frame.shape` | string | `"rectangle"`, `"circle"` | `"rectangle"` |
+| `frame.width` | number | any positive pixel size | `200` |
+| `frame.height` | number | any positive pixel size | `200` |
+| `minZoom` | number | any positive number ≤ `maxZoom` | `1` |
+| `maxZoom` | number | any positive number ≥ `minZoom` | `4` |
+| `rotatable` | boolean | `true`, `false` | `true` |
+| `flippable` | boolean | `true`, `false` | `true` |
+| `resizableFrame` | boolean | `true`, `false` | `false` |
+| `mouseWheelZoom` | boolean \| string | `true`, `false`, `"ctrl"` (require Ctrl+wheel) | `true` |
+| `useExifOrientation` | boolean | `true`, `false` | `true` |
+| `autoSizeStage` | boolean | `true`, `false` | `true` |
+| `showZoomer` | boolean | `true`, `false` | `false` |
+| `zoomerPosition` | string | `"top"`, `"bottom"`, `"left"`, `"right"` | `"bottom"` |
+| `filters.brightness` | number | `>= 0` (`1` = unchanged) | `1` |
+| `filters.contrast` | number | `>= 0` (`1` = unchanged) | `1` |
+| `filters.saturation` | number | `>= 0` (`1` = unchanged) | `1` |
+| `filters.grayscale` | boolean | `true`, `false` | `false` |
+| `filters.sepia` | boolean | `true`, `false` | `false` |
+| `uploader` | function | `(blob, options & {url}) => Promise<unknown>` | none — falls back to the built-in FormData/fetch uploader |
+
+Any option with a fixed set of valid string values (`frame.shape`,
+`mouseWheelZoom`, `zoomerPosition`, and `export()`/`upload()`'s `type`/
+`format` below) validates at runtime, not just via TypeScript types — an
+invalid value logs `console.warn("Kiri: invalid <option> \"<value>\" —
+defaulting to \"<default>\". Valid values: ...")` and falls back to the
+default rather than silently misbehaving. `resolveEnumOption()` in
+`validate.ts` implements this once, shared across every such option.
+
+`load(source, options)` — `options`:
+
+| Option | Type | Valid values | Default |
+|---|---|---|---|
+| `zoom` | number | clamped to `[minZoom, maxZoom]` | `minZoom` |
+| `offset.x` / `offset.y` | number | clamped so the frame stays covered | `0` |
+| `rotation` | number (degrees) | snapped to the nearest 90° | `0` |
+| `flip.horizontal` / `flip.vertical` | boolean | `true`, `false` | `false` |
+
+`export(options)` / `upload(url, options)` — `options` (upload extends export's):
+
+| Option | Type | Valid values | Default |
+|---|---|---|---|
+| `type` | string | `"base64"`, `"blob"`, `"canvas"` | `"base64"` |
+| `format` | string | `"image/jpeg"`, `"image/png"`, `"image/webp"` | `"image/png"` |
+| `quality` | number | `0`–`1` (only meaningful for jpeg/webp) | browser default |
+| `width` | number | any positive pixel size | frame width |
+| `height` | number | any positive pixel size | frame height |
+| `fieldName` *(upload only)* | string | any | `"file"` |
+| `fileName` *(upload only)* | string | any | `"crop.<ext>"`, ext from `format` |
+| `extraFields` *(upload only)* | `Record<string,string>` | any | `{}` |
+| `fetchOptions` *(upload only)* | `RequestInit` | any valid fetch init | `{}` |
+| `uploader` *(upload only)* | function | same shape as the constructor option | the constructor's `uploader`, or the built-in one |
 
 ### API naming rationale (vs. the API this project intentionally departs from)
 

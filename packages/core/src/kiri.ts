@@ -35,9 +35,22 @@ import { orientationToTransform, readExifOrientation } from "./exif";
 import { exportCrop } from "./export";
 import { DEFAULT_FILTERS, mergeFilters } from "./filters";
 import { uploadBlob } from "./upload";
+import { resolveEnumOption } from "./validate";
 
 const DEFAULT_FRAME_SIZE = 200;
 const MIN_FRAME_SIZE = 20;
+const VALID_FRAME_SHAPES: FrameShape[] = ["rectangle", "circle"];
+const VALID_ZOOMER_POSITIONS: ZoomerPosition[] = ["top", "bottom", "left", "right"];
+
+function resolveMouseWheelZoom(value: KiriOptions["mouseWheelZoom"]): boolean | "ctrl" {
+  if (value === undefined) return true;
+  if (typeof value === "boolean" || value === "ctrl") return value;
+  console.warn(
+    `Kiri: invalid mouseWheelZoom "${String(value)}" — defaulting to true. ` +
+      `Valid values: true, false, "ctrl".`
+  );
+  return true;
+}
 
 interface ResolvedOptions {
   frame: { shape: FrameShape; width: number; height: number };
@@ -84,7 +97,12 @@ export class Kiri {
     this.container = container;
     this.opts = {
       frame: {
-        shape: options.frame?.shape ?? "rect",
+        shape: resolveEnumOption(
+          options.frame?.shape,
+          VALID_FRAME_SHAPES,
+          "rectangle",
+          "frame.shape"
+        ),
         width: options.frame?.width ?? DEFAULT_FRAME_SIZE,
         height: options.frame?.height ?? DEFAULT_FRAME_SIZE,
       },
@@ -93,12 +111,17 @@ export class Kiri {
       rotatable: options.rotatable ?? true,
       flippable: options.flippable ?? true,
       resizableFrame: options.resizableFrame ?? false,
-      mouseWheelZoom: options.mouseWheelZoom ?? true,
+      mouseWheelZoom: resolveMouseWheelZoom(options.mouseWheelZoom),
       useExifOrientation: options.useExifOrientation ?? true,
       uploader: options.uploader,
       autoSizeStage: options.autoSizeStage ?? true,
       showZoomer: options.showZoomer ?? false,
-      zoomerPosition: options.zoomerPosition ?? "bottom",
+      zoomerPosition: resolveEnumOption(
+        options.zoomerPosition,
+        VALID_ZOOMER_POSITIONS,
+        "bottom",
+        "zoomerPosition"
+      ),
     };
     this.state.filters = mergeFilters(DEFAULT_FILTERS, options.filters ?? {});
 
