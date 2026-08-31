@@ -18,4 +18,5 @@ export type {
   Offset,
   UploadOptions,
   Uploader,
+  ZoomerPosition,
 } from "./types";

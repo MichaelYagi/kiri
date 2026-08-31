@@ -54,6 +54,20 @@ const blob = await cropper.export({ type: "blob", format: "image/png" });
 await cropper.upload("https://example.com/upload"); // or pass a custom `uploader`
 ```
 
+#### Built-in zoom slider
+
+```ts
+new Kiri(container, {
+  showZoomer: true,
+  zoomerPosition: "bottom", // "top" | "bottom" | "left" | "right", default "bottom"
+});
+```
+
+Renders its own `<input type="range">` next to the stage — no manual wiring
+needed. It's bidirectionally synced: dragging it zooms, and zooming any other
+way (wheel, pinch, `setZoom()`) moves it. Position is purely a placement
+choice; behavior is identical in all four.
+
 #### Plain `<script>` tag (no bundler)
 
 ```html

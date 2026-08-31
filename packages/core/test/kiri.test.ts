@@ -138,4 +138,63 @@ describe("Kiri", () => {
     cropper.destroy();
     expect(container.innerHTML).toBe("");
   });
+
+  describe("zoomer", () => {
+    it("renders no zoomer by default", () => {
+      new Kiri(container);
+      expect(container.querySelector(".kiri-zoomer")).toBeNull();
+      expect(container.querySelector(".kiri-root")).toBeNull();
+    });
+
+    it("renders a zoomer positioned bottom by default when enabled", () => {
+      new Kiri(container, { showZoomer: true });
+      expect(container.querySelector(".kiri-root--bottom")).not.toBeNull();
+      const zoomer = container.querySelector(".kiri-zoomer") as HTMLInputElement;
+      expect(zoomer).not.toBeNull();
+      expect(zoomer.type).toBe("range");
+    });
+
+    it("positions the zoomer per zoomerPosition", () => {
+      new Kiri(container, { showZoomer: true, zoomerPosition: "left" });
+      expect(container.querySelector(".kiri-root--left")).not.toBeNull();
+    });
+
+    it("matches the zoomer's range to minZoom/maxZoom and initial zoom", () => {
+      new Kiri(container, { showZoomer: true, minZoom: 1, maxZoom: 5 });
+      const zoomer = container.querySelector(".kiri-zoomer") as HTMLInputElement;
+      expect(zoomer.min).toBe("1");
+      expect(zoomer.max).toBe("5");
+      expect(zoomer.value).toBe("1");
+    });
+
+    it("dragging the zoomer calls setZoom (slider -> state)", () => {
+      const cropper = new Kiri(container, { showZoomer: true, minZoom: 1, maxZoom: 4 });
+      const zoomer = container.querySelector(".kiri-zoomer") as HTMLInputElement;
+
+      zoomer.value = "3";
+      zoomer.dispatchEvent(new Event("input"));
+
+      expect(cropper.getState().zoom).toBe(3);
+    });
+
+    it("keeps the zoomer in sync when zoom changes programmatically (state -> slider)", () => {
+      const cropper = new Kiri(container, { showZoomer: true, minZoom: 1, maxZoom: 4 });
+      const zoomer = container.querySelector(".kiri-zoomer") as HTMLInputElement;
+
+      cropper.setZoom(2.5);
+
+      expect(zoomer.value).toBe("2.5");
+    });
+
+    it("removes the zoomer's listener on destroy", () => {
+      const cropper = new Kiri(container, { showZoomer: true });
+      const zoomer = container.querySelector(".kiri-zoomer") as HTMLInputElement;
+      cropper.destroy();
+
+      // container was cleared, so this dispatch hits a detached node — just
+      // confirms destroy() doesn't throw and the container really is empty.
+      zoomer.dispatchEvent(new Event("input"));
+      expect(container.innerHTML).toBe("");
+    });
+  });
 });

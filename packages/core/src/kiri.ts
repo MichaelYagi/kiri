@@ -11,6 +11,7 @@ import type {
   LoadOptions,
   UploadOptions,
   Uploader,
+  ZoomerPosition,
 } from "./types";
 import {
   applyFilters,
@@ -49,6 +50,8 @@ interface ResolvedOptions {
   useExifOrientation: boolean;
   uploader: Uploader | undefined;
   autoSizeStage: boolean;
+  showZoomer: boolean;
+  zoomerPosition: ZoomerPosition;
 }
 
 export class Kiri {
@@ -57,6 +60,7 @@ export class Kiri {
   private readonly stage: StageElements;
   private readonly gestureHandle: { destroy: () => void };
   private resizeHandle: { destroy: () => void } | null = null;
+  private zoomerHandle: { destroy: () => void } | null = null;
   private naturalSize: Size = { width: 0, height: 0 };
   private state: KiriState = {
     zoom: 1,
@@ -93,6 +97,8 @@ export class Kiri {
       useExifOrientation: options.useExifOrientation ?? true,
       uploader: options.uploader,
       autoSizeStage: options.autoSizeStage ?? true,
+      showZoomer: options.showZoomer ?? false,
+      zoomerPosition: options.zoomerPosition ?? "bottom",
     };
     this.state.filters = mergeFilters(DEFAULT_FILTERS, options.filters ?? {});
 
@@ -100,10 +106,18 @@ export class Kiri {
       this.container,
       this.opts.frame.shape,
       this.opts.frame.width,
-      this.opts.frame.height
+      this.opts.frame.height,
+      {
+        show: this.opts.showZoomer,
+        position: this.opts.zoomerPosition,
+        min: this.opts.minZoom,
+        max: this.opts.maxZoom,
+        value: this.state.zoom,
+      }
     );
     if (this.opts.autoSizeStage) this.syncStageSize();
     applyFilters(this.stage.imgEl, this.state.filters);
+    if (this.stage.zoomerEl) this.enableZoomer(this.stage.zoomerEl);
 
     this.gestureHandle = attachGestures(
       this.stage.stageEl,
@@ -260,6 +274,7 @@ export class Kiri {
   destroy(): void {
     this.gestureHandle.destroy();
     this.resizeHandle?.destroy();
+    this.zoomerHandle?.destroy();
     this.container.innerHTML = "";
     this.listeners.change = [];
   }
@@ -282,7 +297,21 @@ export class Kiri {
       computeCoverScale(this.naturalSize, this.getFrameSize(), next.rotation) * next.zoom;
     applyTransform(this.stage.imageLayerEl, next, scale);
     applyFilters(this.stage.imgEl, next.filters);
+    // Keeps the slider in sync regardless of what triggered the zoom change
+    // (wheel, pinch, drag-clamping, or setZoom() itself) — setting .value
+    // programmatically doesn't re-fire "input", so no feedback loop.
+    if (this.stage.zoomerEl) this.stage.zoomerEl.value = String(next.zoom);
     for (const cb of this.listeners.change) cb(this.getState());
+  }
+
+  private enableZoomer(zoomerEl: HTMLInputElement): void {
+    const onInput = (): void => this.setZoom(Number(zoomerEl.value));
+    zoomerEl.addEventListener("input", onInput);
+    this.zoomerHandle = {
+      destroy(): void {
+        zoomerEl.removeEventListener("input", onInput);
+      },
+    };
   }
 
   private enableFrameResize(): void {

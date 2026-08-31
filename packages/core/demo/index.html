@@ -13,9 +13,9 @@
         color: #222;
       }
       #kiri-container {
-        width: 100%;
-        height: 360px;
-        border: 1px solid #ccc;
+        /* No explicit sizing — the stage auto-sizes itself to the frame
+           dimensions (autoSizeStage: true, the default). */
+        display: inline-block;
       }
       .controls {
         display: flex;
@@ -45,10 +45,8 @@
     <div id="kiri-container"></div>
 
     <div class="controls">
-      <label>
-        Zoom
-        <input id="zoom" type="range" min="1" max="4" step="0.01" value="1" />
-      </label>
+      <!-- No zoom slider here — showZoomer: true renders Kiri's own,
+           already synced with wheel/pinch zoom, next to the stage above. -->
       <button id="rotate">Rotate 90°</button>
       <button id="flip-h">Flip horizontal</button>
       <button id="flip-v">Flip vertical</button>

@@ -3,7 +3,6 @@ import { Kiri } from "../src/index";
 
 const container = document.getElementById("kiri-container") as HTMLElement;
 const fileInput = document.getElementById("file-input") as HTMLInputElement;
-const zoomSlider = document.getElementById("zoom") as HTMLInputElement;
 const rotateButton = document.getElementById("rotate") as HTMLButtonElement;
 const flipHButton = document.getElementById("flip-h") as HTMLButtonElement;
 const flipVButton = document.getElementById("flip-v") as HTMLButtonElement;
@@ -26,20 +25,14 @@ const cropper = new Kiri(container, {
   resizableFrame: true,
   mouseWheelZoom: true,
   useExifOrientation: true,
-});
-
-cropper.on("change", (state) => {
-  zoomSlider.value = String(state.zoom);
+  showZoomer: true,
+  zoomerPosition: "bottom",
 });
 
 fileInput.addEventListener("change", async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
   await cropper.load(file);
-});
-
-zoomSlider.addEventListener("input", () => {
-  cropper.setZoom(Number(zoomSlider.value));
 });
 
 rotateButton.addEventListener("click", () => {

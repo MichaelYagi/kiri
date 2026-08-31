@@ -44,3 +44,29 @@
   pointer-events: auto;
   cursor: nwse-resize;
 }
+.kiri-root {
+  display: inline-flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.kiri-root--bottom,
+.kiri-root--top {
+  flex-direction: column;
+}
+.kiri-root--left,
+.kiri-root--right {
+  flex-direction: row;
+}
+.kiri-root--top .kiri-zoomer,
+.kiri-root--left .kiri-zoomer {
+  order: -1;
+}
+.kiri-zoomer {
+  cursor: pointer;
+}
+.kiri-root--left .kiri-zoomer,
+.kiri-root--right .kiri-zoomer {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 24px;
+}

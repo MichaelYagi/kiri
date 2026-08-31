@@ -75,6 +75,20 @@ truth for the intended API; update it alongside any design decisions that change
   inline sizing, falling back to `kiri.css`'s `.kiri-stage { width: 100%;
   height: 100% }` rule — for a consumer who wants to size the stage via
   their own container CSS instead.
+- Zoom slider (`showZoomer`/`zoomerPosition`, default off/`"bottom"`): when
+  enabled, `stage.ts`'s `createStage()` wraps `stageEl` and a new `<input
+  type="range" class="kiri-zoomer">` in a `.kiri-root.kiri-root--<position>`
+  flex container (CSS `order`/`flex-direction` per position handle layout —
+  see `kiri.css`) rather than appending `stageEl` to the container directly.
+  `left`/`right` render the slider vertically via `writing-mode:
+  vertical-lr; direction: rtl` (verified in a real browser that this puts
+  max zoom at the top, matching a natural vertical-slider direction).
+  `Kiri.enableZoomer()` wires the slider's `"input"` event to `setZoom()`;
+  `commitState()` writes `zoomerEl.value` on every state change so it stays
+  in sync regardless of what triggered the zoom (wheel/pinch/drag-clamping/
+  `setZoom()` itself) — setting `.value` programmatically doesn't re-fire
+  `"input"`, so there's no feedback loop. All positions are purely a CSS
+  placement choice — identical zoom behavior in every position.
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

@@ -1,4 +1,4 @@
-import type { Filters, FrameShape, KiriState } from "./types";
+import type { Filters, FrameShape, KiriState, ZoomerPosition } from "./types";
 import { buildFilterString } from "./filters";
 
 export interface StageElements {
@@ -6,13 +6,23 @@ export interface StageElements {
   frameEl: HTMLDivElement;
   imageLayerEl: HTMLDivElement;
   imgEl: HTMLImageElement;
+  zoomerEl: HTMLInputElement | null;
+}
+
+export interface ZoomerConfig {
+  show: boolean;
+  position: ZoomerPosition;
+  min: number;
+  max: number;
+  value: number;
 }
 
 export function createStage(
   container: HTMLElement,
   frameShape: FrameShape,
   frameWidth: number,
-  frameHeight: number
+  frameHeight: number,
+  zoomer: ZoomerConfig
 ): StageElements {
   container.innerHTML = "";
 
@@ -33,9 +43,29 @@ export function createStage(
 
   stageEl.appendChild(imageLayerEl);
   stageEl.appendChild(frameEl);
-  container.appendChild(stageEl);
 
-  return { stageEl, frameEl, imageLayerEl, imgEl };
+  let zoomerEl: HTMLInputElement | null = null;
+
+  if (zoomer.show) {
+    const rootEl = document.createElement("div");
+    rootEl.className = `kiri-root kiri-root--${zoomer.position}`;
+
+    zoomerEl = document.createElement("input");
+    zoomerEl.type = "range";
+    zoomerEl.className = "kiri-zoomer";
+    zoomerEl.min = String(zoomer.min);
+    zoomerEl.max = String(zoomer.max);
+    zoomerEl.step = "0.01";
+    zoomerEl.value = String(zoomer.value);
+
+    rootEl.appendChild(stageEl);
+    rootEl.appendChild(zoomerEl);
+    container.appendChild(rootEl);
+  } else {
+    container.appendChild(stageEl);
+  }
+
+  return { stageEl, frameEl, imageLayerEl, imgEl, zoomerEl };
 }
 
 export function setFrameSize(

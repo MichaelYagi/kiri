@@ -1,4 +1,5 @@
 export type FrameShape = "rect" | "circle";
+export type ZoomerPosition = "top" | "bottom" | "left" | "right";
 
 export interface FrameSize {
   width: number;
@@ -51,6 +52,10 @@ export interface KiriOptions {
    * your own CSS on the container element.
    */
   autoSizeStage?: boolean;
+  /** Renders a built-in zoom slider, kept in sync with wheel/pinch/setZoom() in both directions. Default false. */
+  showZoomer?: boolean;
+  /** Where the zoom slider sits relative to the stage. Purely a placement choice — identical behavior in every position. Default "bottom". */
+  zoomerPosition?: ZoomerPosition;
 }
 
 export interface KiriState {

@@ -50,6 +50,8 @@ const cropper = new Kiri(containerElement, {
   mouseWheelZoom: true, // or "ctrl" to require Ctrl+wheel
   useExifOrientation: true,
   autoSizeStage: true, // default; false = size the stage via container CSS instead
+  showZoomer: false, // default; true renders a built-in zoom slider
+  zoomerPosition: "bottom", // "top" | "bottom" | "left" | "right"
 });
 
 // Load an image (File, Blob, or URL string)
@@ -99,7 +101,10 @@ cropper.destroy();
 ## Feature scope (v1 — full parity)
 
 - Drag to reposition image within the frame
-- Zoom via wheel, trackpad pinch, and an optional slider UI
+- Zoom via wheel, trackpad pinch, and an optional built-in slider
+  (`showZoomer: true`, `zoomerPosition: "top" | "bottom" | "left" | "right"`,
+  default `"bottom"` — purely a placement choice, identical behavior in every
+  position, bidirectionally synced with wheel/pinch/`setZoom()`)
 - Rotate in 90° increments
 - Flip horizontally/vertically (independent of rotation)
 - Optional resizable frame (drag handles)
