@@ -1,4 +1,5 @@
 import type {
+  CropRegion,
   ExportOptions,
   ExportResult,
   Filters,
@@ -9,6 +10,7 @@ import type {
   KiriOptions,
   KiriState,
   LoadOptions,
+  Offset,
   UploadOptions,
   Uploader,
   ZoomerPosition,
@@ -32,7 +34,7 @@ import {
   type Size,
 } from "./gestures";
 import { orientationToTransform, readExifOrientation } from "./exif";
-import { exportCrop } from "./export";
+import { computeCropRegion, exportCrop } from "./export";
 import { DEFAULT_FILTERS, mergeFilters } from "./filters";
 import { uploadBlob } from "./upload";
 import { resolveEnumOption } from "./validate";
@@ -59,6 +61,7 @@ interface ResolvedOptions {
   rotatable: boolean;
   flippable: boolean;
   resizableFrame: boolean;
+  lockAspectRatio: boolean;
   mouseWheelZoom: boolean | "ctrl";
   useExifOrientation: boolean;
   uploader: Uploader | undefined;
@@ -87,6 +90,8 @@ export class Kiri {
     flip: { horizontal: false, vertical: false },
     filters: DEFAULT_FILTERS,
   };
+  /** Snapshot taken right after `load()` resolves, so `reset()` has something to revert to. */
+  private initialState: KiriState | null = null;
   private listeners: Record<KiriEventName, KiriEventCallback[]> = { change: [] };
 
   /**
@@ -121,6 +126,7 @@ export class Kiri {
       rotatable: options.rotatable ?? true,
       flippable: options.flippable ?? true,
       resizableFrame: options.resizableFrame ?? false,
+      lockAspectRatio: options.lockAspectRatio ?? false,
       mouseWheelZoom: resolveMouseWheelZoom(options.mouseWheelZoom),
       useExifOrientation: options.useExifOrientation ?? true,
       uploader: options.uploader,
@@ -160,6 +166,7 @@ export class Kiri {
         getState: () => this.state,
         getMinMaxZoom: () => ({ min: this.opts.minZoom, max: this.opts.maxZoom }),
         setState: (next) => this.commitState(next),
+        reset: () => this.reset(),
       },
       { mouseWheelZoom: this.opts.mouseWheelZoom }
     );
@@ -226,6 +233,7 @@ export class Kiri {
       flip: { horizontal: flipHorizontal, vertical: flipVertical },
       filters: this.state.filters,
     });
+    this.initialState = this.getState();
   }
 
   /** A snapshot of the current state — mutating the returned object has no effect. */
@@ -250,6 +258,38 @@ export class Kiri {
     );
     const offset = clampOffset(this.state.offset, rendered, this.getFrameSize());
     this.commitState({ ...this.state, zoom: clamped, offset });
+  }
+
+  /**
+   * Sets the pan offset to an absolute value (image-center offset from the
+   * frame center, in stage pixels), clamped so the frame stays fully covered
+   * by the rendered image.
+   */
+  setOffset(offset: Offset): void {
+    const rendered = effectiveRenderedSize(
+      this.naturalSize,
+      this.getFrameSize(),
+      this.state.rotation,
+      this.state.zoom
+    );
+    const clamped = clampOffset(offset, rendered, this.getFrameSize());
+    this.commitState({ ...this.state, offset: clamped });
+  }
+
+  /**
+   * Reverts zoom/offset/rotation/flip/filters to what they were right after
+   * `load()` resolved (including any `loadOptions` passed to it). No-op if
+   * nothing has been loaded yet.
+   */
+  reset(): void {
+    if (!this.initialState) return;
+    this.commitState({
+      zoom: this.initialState.zoom,
+      offset: { ...this.initialState.offset },
+      rotation: this.initialState.rotation,
+      flip: { ...this.initialState.flip },
+      filters: { ...this.initialState.filters },
+    });
   }
 
   /**
@@ -329,6 +369,16 @@ export class Kiri {
   }
 
   /**
+   * The current crop selection as a rectangle in the original, unrotated,
+   * unflipped source image's own pixel coordinates — for sending to a server
+   * that will crop the full-resolution original itself instead of uploading
+   * a client-re-encoded image. See {@link CropRegion}.
+   */
+  getCropRegion(): CropRegion {
+    return computeCropRegion(this.naturalSize, this.getFrameSize(), this.state);
+  }
+
+  /**
    * Exports the current crop as a blob, then uploads it — a default
    * FormData/`fetch` POST, or a custom `uploader` (per-call `options.uploader`
    * wins over the constructor's, which wins over the built-in default).
@@ -401,46 +451,79 @@ export class Kiri {
   }
 
   private enableFrameResize(): void {
-    const handle = document.createElement("div");
-    handle.className = "kiri-frame-handle";
-    handle.style.right = "-5px";
-    handle.style.bottom = "-5px";
-    this.stage.frameEl.appendChild(handle);
+    // Corners named by which edges they sit on; signX/signY say which way
+    // dragging that corner should grow the frame on each axis. The frame is
+    // always centered in the stage (kiri.css), so moving any one corner by
+    // `d` pixels grows/shrinks that axis by `2*d` to keep the opposite edge
+    // stationary and make the drag feel corner-anchored.
+    const corners: { name: string; edge: { left?: string; right?: string; top?: string; bottom?: string }; signX: number; signY: number }[] = [
+      { name: "top-left", edge: { left: "-5px", top: "-5px" }, signX: -1, signY: -1 },
+      { name: "top-right", edge: { right: "-5px", top: "-5px" }, signX: 1, signY: -1 },
+      { name: "bottom-left", edge: { left: "-5px", bottom: "-5px" }, signX: -1, signY: 1 },
+      { name: "bottom-right", edge: { right: "-5px", bottom: "-5px" }, signX: 1, signY: 1 },
+    ];
 
-    let start: { x: number; y: number; width: number; height: number } | null = null;
+    const cleanups: (() => void)[] = [];
 
-    const onDown = (e: PointerEvent): void => {
-      e.stopPropagation();
-      handle.setPointerCapture(e.pointerId);
-      start = {
-        x: e.clientX,
-        y: e.clientY,
-        width: this.opts.frame.width,
-        height: this.opts.frame.height,
+    for (const corner of corners) {
+      const handle = document.createElement("div");
+      handle.className = `kiri-frame-handle kiri-frame-handle--${corner.name}`;
+      Object.assign(handle.style, corner.edge);
+      this.stage.frameEl.appendChild(handle);
+
+      let start: { x: number; y: number; width: number; height: number } | null = null;
+
+      const onDown = (e: PointerEvent): void => {
+        e.stopPropagation();
+        handle.setPointerCapture(e.pointerId);
+        start = {
+          x: e.clientX,
+          y: e.clientY,
+          width: this.opts.frame.width,
+          height: this.opts.frame.height,
+        };
       };
-    };
-    const onMove = (e: PointerEvent): void => {
-      if (!start) return;
-      const dx = (e.clientX - start.x) * 2;
-      const dy = (e.clientY - start.y) * 2;
-      this.setFrameSize(start.width + dx, start.height + dy);
-    };
-    const onUp = (): void => {
-      start = null;
-    };
+      const onMove = (e: PointerEvent): void => {
+        if (!start) return;
+        const dx = (e.clientX - start.x) * 2 * corner.signX;
+        const dy = (e.clientY - start.y) * 2 * corner.signY;
+        const rawWidth = start.width + dx;
+        const rawHeight = start.height + dy;
 
-    handle.addEventListener("pointerdown", onDown);
-    handle.addEventListener("pointermove", onMove);
-    handle.addEventListener("pointerup", onUp);
-    handle.addEventListener("pointercancel", onUp);
+        if (this.opts.lockAspectRatio) {
+          const aspect = start.width / start.height;
+          // Whichever axis moved more (in aspect-normalized units) drives
+          // the resize; the other axis follows to preserve the ratio.
+          if (Math.abs(rawWidth - start.width) >= Math.abs(rawHeight - start.height) * aspect) {
+            this.setFrameSize(rawWidth, rawWidth / aspect);
+          } else {
+            this.setFrameSize(rawHeight * aspect, rawHeight);
+          }
+        } else {
+          this.setFrameSize(rawWidth, rawHeight);
+        }
+      };
+      const onUp = (): void => {
+        start = null;
+      };
 
-    this.resizeHandle = {
-      destroy(): void {
+      handle.addEventListener("pointerdown", onDown);
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+      handle.addEventListener("pointercancel", onUp);
+
+      cleanups.push(() => {
         handle.removeEventListener("pointerdown", onDown);
         handle.removeEventListener("pointermove", onMove);
         handle.removeEventListener("pointerup", onUp);
         handle.removeEventListener("pointercancel", onUp);
         handle.remove();
+      });
+    }
+
+    this.resizeHandle = {
+      destroy(): void {
+        for (const cleanup of cleanups) cleanup();
       },
     };
   }

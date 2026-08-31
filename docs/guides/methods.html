@@ -33,15 +33,20 @@
     <tr><td><code>load(source, options?)</code></td><td>Loads a <code>File</code>, <code>Blob</code>, or URL string. Returns a <code>Promise&lt;void&gt;</code> that resolves once the image has decoded. <code>options</code>: initial <code>zoom</code>, <code>offset</code>, <code>rotation</code>, <code>flip</code>.</td></tr>
     <tr><td><code>getState()</code></td><td>Returns a snapshot: <code>{ zoom, offset, rotation, flip, filters }</code>. A copy — mutating the returned object has no effect.</td></tr>
     <tr><td><code>setZoom(zoom)</code></td><td>Absolute zoom, clamped to <code>[minZoom, maxZoom]</code>.</td></tr>
+    <tr><td><code>setOffset(offset)</code></td><td>Absolute pan — <code>{ x, y }</code>, the image's center offset from the frame center in stage pixels. Clamped so the frame stays fully covered by the image.</td></tr>
+    <tr><td><code>reset()</code></td><td>Reverts zoom/offset/rotation/flip/filters to whatever they were right after <code>load()</code> resolved (including any <code>loadOptions</code> passed to it). No-op before anything has been loaded.</td></tr>
     <tr><td><code>rotate(deltaDeg)</code></td><td>Relative rotation, snapped to the nearest 90°. No-op if <code>rotatable: false</code>.</td></tr>
     <tr><td><code>flipHorizontal()</code> / <code>flipVertical()</code></td><td>Toggles. No-op if <code>flippable: false</code>.</td></tr>
     <tr><td><code>setFrameSize(width, height)</code></td><td>Resizes the frame (and the stage too, if <code>autoSizeStage</code>). Clamped to a 20px minimum per axis.</td></tr>
     <tr><td><code>setFilters(partial)</code></td><td>Merges into the current filters; numeric values clamped to <code>&gt;= 0</code>. See <a href="filters.html">Filters</a>.</td></tr>
     <tr><td><code>export(options?)</code></td><td>Renders the current crop. Returns <code>Promise&lt;string | Blob | HTMLCanvasElement&gt;</code> depending on <code>type</code>. See <a href="settings.html#export">Settings</a>.</td></tr>
+    <tr><td><code>getCropRegion()</code></td><td>Returns <code>{ x, y, width, height, rotation, flip }</code> — the current crop selection as a rectangle in the <em>original, unrotated, unflipped</em> source image's own pixel coordinates. For sending to a server that crops the full-resolution original itself, instead of uploading a client-re-encoded image. The server reproduces the transform by flipping, then rotating, then cropping to <code>x</code>/<code>y</code>/<code>width</code>/<code>height</code>.</td></tr>
     <tr><td><code>upload(url, options?)</code></td><td>Exports as a blob, then uploads it — a default FormData/fetch POST, or a custom <code>uploader</code>.</td></tr>
     <tr><td><code>on("change", callback)</code> / <code>off("change", callback)</code></td><td>Subscribe/unsubscribe to state changes. See <a href="events.html">Events</a>.</td></tr>
-    <tr><td><code>destroy()</code></td><td>Removes all event listeners (drag/zoom gestures, resize handle, zoom slider) and clears the container's <code>innerHTML</code>, leaving an empty container element. Call this when you're done with an instance (e.g. unmounting a component).</td></tr>
+    <tr><td><code>destroy()</code></td><td>Removes all event listeners (drag/zoom gestures, resize handles, zoom slider, keyboard) and clears the container's <code>innerHTML</code>, leaving an empty container element. Call this when you're done with an instance (e.g. unmounting a component).</td></tr>
   </table>
+
+  <p class="pg-hint">The stage itself is keyboard-accessible once focused (tab to it, or click it): arrow keys pan via <code>setOffset()</code>, <code>+</code>/<code>-</code> zoom via <code>setZoom()</code>, and <code>0</code> calls <code>reset()</code>.</p>
 
   <h2>KiriBatch</h2>
   <p>Steps a single shared <code>Kiri</code> instance through a queue of

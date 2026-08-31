@@ -101,11 +101,14 @@ cropper.destroy();
 | `load(source, options?)` | `Promise<void>` | Loads a `File`, `Blob`, or URL string. See the `load()` options table below. |
 | `getState()` | `KiriState` | Current `{ zoom, offset, rotation, flip, filters }` snapshot (a copy — mutating it has no effect). |
 | `setZoom(zoom)` | `void` | Absolute zoom, clamped to `[minZoom, maxZoom]`. |
+| `setOffset(offset)` | `void` | Absolute pan (`{ x, y }`), clamped so the frame stays covered by the rendered image — same clamping as a drag. |
+| `reset()` | `void` | Reverts zoom/offset/rotation/flip/filters to whatever they were right after `load()` resolved. No-op before anything's loaded. |
 | `rotate(deltaDeg)` | `void` | Relative rotation, snapped to the nearest 90°. No-op if `rotatable: false`. |
 | `flipHorizontal()` / `flipVertical()` | `void` | Toggles. No-op if `flippable: false`. |
 | `setFrameSize(width, height)` | `void` | Resizes the frame (and the stage too, if `autoSizeStage`). Clamped to a 20px minimum per axis. |
 | `setFilters(partial)` | `void` | Merges into the current filters; numeric values clamped to `>= 0`. |
 | `export(options?)` | `Promise<ExportResult>` | Renders the current crop. See the `export()` options table below. |
+| `getCropRegion()` | `CropRegion` | `{ x, y, width, height, rotation, flip }` — the crop selection in the *original, unrotated, unflipped* source image's own pixel coordinates, for a server to crop the full-resolution original itself. |
 | `upload(url, options?)` | `Promise<unknown>` | Exports as a blob, then uploads it (default: FormData/fetch; or a custom `uploader`). |
 | `on("change", cb)` / `off("change", cb)` | `void` | Subscribe/unsubscribe to state-change events (fires on drag/zoom/rotate/flip/filter changes). |
 | `destroy()` | `void` | Tears the instance down: removes all pointer/wheel event listeners (drag/zoom gestures), the resize-handle listener (if `resizableFrame`), and the zoom-slider listener (if `showZoomer`); clears the container's `innerHTML` (removing the stage/frame/image/zoomer markup entirely, leaving an empty container element); and clears all `"change"` listeners. Call this when you're done with an instance (e.g. unmounting) to avoid leaking listeners. `KiriBatch.destroy()` does the same for its underlying shared `Kiri` instance. |
@@ -124,6 +127,7 @@ Every constructor option, its type, valid values, and default.
 | `rotatable` | boolean | `true`, `false` | `true` |
 | `flippable` | boolean | `true`, `false` | `true` |
 | `resizableFrame` | boolean | `true`, `false` | `false` |
+| `lockAspectRatio` | boolean | `true`, `false` | `false` |
 | `mouseWheelZoom` | boolean \| string | `true`, `false`, `"ctrl"` (require Ctrl+wheel) | `true` |
 | `useExifOrientation` | boolean | `true`, `false` | `true` |
 | `autoSizeStage` | boolean | `true`, `false` | `true` |
@@ -252,6 +256,7 @@ while (await batch.next()) {
   await batch.capture(); // export + store this item's crop
 }
 batch.results(); // all captures, in item order
+// batch.previous() mirrors next() — steps back one item, false at the first item
 ```
 
 ### Framework wrappers
@@ -260,17 +265,20 @@ Thin pass-through components — no cropping logic duplicated, they just own
 the container ref/mount lifecycle and forward to a `Kiri` instance:
 
 - `kiri-react`: `<KiriCropper ref={...} onChange={...} {...KiriOptions} />`,
-  imperative methods (`load/getState/setZoom/rotate/flipHorizontal/
-  flipVertical/setFrameSize/setFilters/export/upload`) exposed via
-  `useImperativeHandle`.
+  imperative methods (`load/getState/setZoom/setOffset/reset/rotate/
+  flipHorizontal/flipVertical/setFrameSize/setFilters/getCropRegion/export/
+  upload`) exposed via `useImperativeHandle`.
 - `kiri-vue`: same prop/method surface, exposed via Vue's `expose()`, a plain
   render-function component (`defineComponent` + `h()`) rather than an SFC —
   no `.vue` compiler plugin needed in the build.
 
-Both capture constructor options once on mount; changing them later goes
-through the exposed imperative methods, not through re-rendering with new
-props (matches the core's own model — options are constructor-time, state
-mutations are explicit method calls).
+Both react to prop changes after mount: `filters` is applied live via
+`setFilters()` (no rebuild); every other option (`frame`, `minZoom`,
+`resizableFrame`, `lockAspectRatio`, etc.) has no live setter in core, so
+changing one destroys and reconstructs the underlying `Kiri` instance and
+automatically re-`load()`s whatever source was last passed to it — a
+consumer re-rendering with new props doesn't have to manually reload the
+image itself.
 
 ## Project structure (monorepo)
 

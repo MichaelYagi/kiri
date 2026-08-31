@@ -103,11 +103,20 @@
     </tr>
     <tr>
       <td><code>resizableFrame</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td>
-      <td>When <code>true</code>, a small drag handle appears at the frame's
-      bottom-right corner — dragging it calls <code>setFrameSize()</code> for
-      you, live, letting the end user resize the crop selection with the
+      <td>When <code>true</code>, a small drag handle appears at each of the
+      frame's four corners — dragging one calls <code>setFrameSize()</code>
+      for you, live, letting the end user resize the crop selection with the
       mouse/touch instead of only via code. See the
       <a href="../examples/resizable-frame.html">resizable frame example</a>.</td>
+    </tr>
+    <tr>
+      <td><code>lockAspectRatio</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td>
+      <td>Only matters when <code>resizableFrame</code> is also <code>true</code>.
+      When <code>true</code>, dragging a corner handle preserves the frame's
+      aspect ratio (whatever it was when the drag started) instead of
+      letting width and height resize independently — useful for a fixed
+      shape like a 1:1 avatar or a 16:9 thumbnail that the end user can
+      still resize.</td>
     </tr>
     <tr>
       <td><code>mouseWheelZoom</code></td><td>boolean | string</td><td><code>true</code>, <code>false</code>, <code>"ctrl"</code></td><td><code>true</code></td>

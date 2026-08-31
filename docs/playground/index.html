@@ -51,6 +51,10 @@
         <div class="pg-row"><label for="frameWidth">Width</label><input id="frameWidth" type="number" min="20" value="200" /></div>
         <div class="pg-row"><label for="frameHeight">Height</label><input id="frameHeight" type="number" min="20" value="200" /></div>
         <div class="pg-row"><label for="resizableFrame">Resizable</label><input id="resizableFrame" type="checkbox" /></div>
+        <div class="pg-row"><label for="lockAspectRatio">lockAspectRatio</label><input id="lockAspectRatio" type="checkbox" /></div>
+        <p class="pg-hint">Only matters while Resizable is on — dragging a
+        corner handle keeps the frame's width:height ratio fixed instead of
+        letting each axis resize independently.</p>
       </fieldset>
 
       <fieldset>
@@ -98,13 +102,17 @@
         <button id="rotate" type="button">Rotate 90°</button>
         <button id="flip-h" type="button">Flip horizontal</button>
         <button id="flip-v" type="button">Flip vertical</button>
+        <button id="reset" type="button">Reset</button>
       </div>
       <div class="controls">
         <button id="export" type="button">Export crop</button>
+        <button id="crop-region" type="button">Get crop region</button>
       </div>
       <div id="output"></div>
       <p><small>Live state (updates as you drag/zoom/rotate/flip):</small></p>
       <pre id="state-dump"></pre>
+      <p><small><code>getCropRegion()</code> — the crop mapped back into the original image's own pixel coordinates:</small></p>
+      <pre id="crop-region-dump">Click "Get crop region" above.</pre>
       <p><small>Constructor options currently applied:</small></p>
       <pre id="options-dump"></pre>
     </div>
@@ -114,7 +122,7 @@
 <script src="../dist/kiri.min.js"></script>
 <script>
   const constructorIds = [
-    "shape", "frameWidth", "frameHeight", "resizableFrame",
+    "shape", "frameWidth", "frameHeight", "resizableFrame", "lockAspectRatio",
     "minZoom", "maxZoom", "mouseWheelZoom", "showZoomer", "zoomerPosition",
     "rotatable", "flippable", "useExifOrientation", "autoSizeStage",
   ];
@@ -142,6 +150,7 @@
       rotatable: el("rotatable").checked,
       flippable: el("flippable").checked,
       resizableFrame: el("resizableFrame").checked,
+      lockAspectRatio: el("lockAspectRatio").checked,
       mouseWheelZoom: readMouseWheelZoom(),
       useExifOrientation: el("useExifOrientation").checked,
       autoSizeStage: el("autoSizeStage").checked,
@@ -203,6 +212,7 @@
   el("rotate").addEventListener("click", () => cropper && cropper.rotate(90));
   el("flip-h").addEventListener("click", () => cropper && cropper.flipHorizontal());
   el("flip-v").addEventListener("click", () => cropper && cropper.flipVertical());
+  el("reset").addEventListener("click", () => cropper && cropper.reset());
 
   el("export").addEventListener("click", async () => {
     if (!cropper) return;
@@ -212,6 +222,11 @@
     const img = document.createElement("img");
     img.src = dataUrl;
     output.appendChild(img);
+  });
+
+  el("crop-region").addEventListener("click", () => {
+    if (!cropper) return;
+    el("crop-region-dump").textContent = JSON.stringify(cropper.getCropRegion(), null, 2);
   });
 
   rebuild();

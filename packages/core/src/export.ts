@@ -1,4 +1,5 @@
 import type {
+  CropRegion,
   ExportFormat,
   ExportOptions,
   ExportResult,
@@ -7,9 +8,18 @@ import type {
   KiriState,
   Offset,
 } from "./types";
-import { computeCoverScale, effectiveRenderedSize, type Size } from "./gestures";
+import {
+  computeCoverScale,
+  effectiveRenderedSize,
+  normalizeRotation,
+  type Size,
+} from "./gestures";
 import { buildFilterString } from "./filters";
 import { resolveEnumOption } from "./validate";
+
+function clampNum(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
 
 const VALID_EXPORT_TYPES: ExportType[] = ["base64", "blob", "canvas"];
 const VALID_EXPORT_FORMATS: ExportFormat[] = ["image/jpeg", "image/png", "image/webp"];
@@ -30,6 +40,72 @@ export function computeFrameSourceRect(
   return {
     left: rendered.width / 2 - offset.x - frame.width / 2,
     top: rendered.height / 2 - offset.y - frame.height / 2,
+  };
+}
+
+/**
+ * Maps the current crop selection back into the *original, unrotated,
+ * unflipped* source image's own pixel coordinates. Corner-based: takes the
+ * frame rect's four corners in rendered (rotated + scaled) space, undoes the
+ * scale, then inverse-rotates each corner (rotation is always a multiple of
+ * 90°, so this stays an axis-aligned rectangle — no interpolation needed)
+ * back into the natural image's coordinate space, then takes the bounding
+ * box. Flip doesn't move the rectangle (mirroring is content-only), so it's
+ * carried through untouched in the result for the caller to apply.
+ */
+export function computeCropRegion(natural: Size, frame: Size, state: KiriState): CropRegion {
+  const scale = computeCoverScale(natural, frame, state.rotation) * state.zoom;
+  const rendered = effectiveRenderedSize(natural, frame, state.rotation, state.zoom);
+  const { left: frameLeft, top: frameTop } = computeFrameSourceRect(rendered, state.offset, frame);
+
+  const renderedCenter = { x: rendered.width / 2, y: rendered.height / 2 };
+  const naturalCenter = { x: natural.width / 2, y: natural.height / 2 };
+  const rotation = normalizeRotation(state.rotation);
+
+  const corners = [
+    { x: frameLeft, y: frameTop },
+    { x: frameLeft + frame.width, y: frameTop },
+    { x: frameLeft, y: frameTop + frame.height },
+    { x: frameLeft + frame.width, y: frameTop + frame.height },
+  ].map(({ x, y }) => {
+    const cx = (x - renderedCenter.x) / scale;
+    const cy = (y - renderedCenter.y) / scale;
+    let u: number;
+    let v: number;
+    if (rotation === 90) {
+      u = cy;
+      v = -cx;
+    } else if (rotation === 180) {
+      u = -cx;
+      v = -cy;
+    } else if (rotation === 270) {
+      u = -cy;
+      v = cx;
+    } else {
+      u = cx;
+      v = cy;
+    }
+    return { x: u + naturalCenter.x, y: v + naturalCenter.y };
+  });
+
+  const xs = corners.map((c) => c.x);
+  const ys = corners.map((c) => c.y);
+  // Clamp each edge independently (not just the origin) — a frame that
+  // overhangs the image (e.g. offset drags it past an edge) must shrink
+  // width/height to match, not just get shifted while keeping its
+  // unclamped size.
+  const left = clampNum(Math.min(...xs), 0, natural.width);
+  const top = clampNum(Math.min(...ys), 0, natural.height);
+  const right = clampNum(Math.max(...xs), 0, natural.width);
+  const bottom = clampNum(Math.max(...ys), 0, natural.height);
+
+  return {
+    x: Math.round(left),
+    y: Math.round(top),
+    width: Math.round(right - left),
+    height: Math.round(bottom - top),
+    rotation,
+    flip: { ...state.flip },
   };
 }
 

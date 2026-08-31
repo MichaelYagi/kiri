@@ -65,7 +65,12 @@ interface GestureCallbacks {
   getState: () => KiriState;
   getMinMaxZoom: () => { min: number; max: number };
   setState: (next: KiriState) => void;
+  /** Called on the "0" key — reverts to the post-`load()` state. */
+  reset: () => void;
 }
+
+const KEYBOARD_PAN_STEP = 15;
+const KEYBOARD_ZOOM_STEP = 0.1;
 
 export interface GestureOptions {
   mouseWheelZoom?: boolean | "ctrl";
@@ -163,11 +168,53 @@ export function attachGestures(
     applyClampedState({ ...state, zoom: state.zoom * (1 + delta) });
   }
 
+  // Arrow keys pan, +/- zoom, 0 resets — lets a keyboard-only user operate
+  // the cropper once the stage is focused (it's a tabbable, labeled element;
+  // see stage.ts).
+  function onKeyDown(e: KeyboardEvent): void {
+    const state = callbacks.getState();
+    switch (e.key) {
+      case "ArrowLeft":
+        e.preventDefault();
+        applyClampedState({ ...state, offset: { ...state.offset, x: state.offset.x - KEYBOARD_PAN_STEP } });
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        applyClampedState({ ...state, offset: { ...state.offset, x: state.offset.x + KEYBOARD_PAN_STEP } });
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        applyClampedState({ ...state, offset: { ...state.offset, y: state.offset.y - KEYBOARD_PAN_STEP } });
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        applyClampedState({ ...state, offset: { ...state.offset, y: state.offset.y + KEYBOARD_PAN_STEP } });
+        break;
+      case "+":
+      case "=":
+        e.preventDefault();
+        applyClampedState({ ...state, zoom: state.zoom + KEYBOARD_ZOOM_STEP });
+        break;
+      case "-":
+      case "_":
+        e.preventDefault();
+        applyClampedState({ ...state, zoom: state.zoom - KEYBOARD_ZOOM_STEP });
+        break;
+      case "0":
+        e.preventDefault();
+        callbacks.reset();
+        break;
+      default:
+        break;
+    }
+  }
+
   stageEl.addEventListener("pointerdown", onPointerDown);
   stageEl.addEventListener("pointermove", onPointerMove);
   stageEl.addEventListener("pointerup", onPointerUp);
   stageEl.addEventListener("pointercancel", onPointerUp);
   stageEl.addEventListener("wheel", onWheel, { passive: false });
+  stageEl.addEventListener("keydown", onKeyDown);
 
   return {
     destroy(): void {
@@ -176,6 +223,7 @@ export function attachGestures(
       stageEl.removeEventListener("pointerup", onPointerUp);
       stageEl.removeEventListener("pointercancel", onPointerUp);
       stageEl.removeEventListener("wheel", onWheel);
+      stageEl.removeEventListener("keydown", onKeyDown);
     },
   };
 }

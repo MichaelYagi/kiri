@@ -2,6 +2,7 @@ export { Kiri } from "./kiri";
 export { KiriBatch } from "./batch";
 export type { KiriBatchItem } from "./batch";
 export type {
+  CropRegion,
   ExportFormat,
   ExportOptions,
   ExportResult,

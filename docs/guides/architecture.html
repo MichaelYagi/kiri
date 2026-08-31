@@ -59,6 +59,14 @@
   in pure functions (no DOM), which is what makes it fast to reason about
   and to test.</p>
 
+  <h2>Keyboard accessibility</h2>
+  <p>The stage is a focusable, labeled element (<code>tabindex="0"</code>,
+  <code>role="application"</code>, <code>aria-label</code>) so a keyboard-only
+  user isn't limited to pointer-drag/pinch: arrow keys pan, <code>+</code>/
+  <code>-</code> zoom, and <code>0</code> resets — all going through the same
+  <code>setOffset()</code>/<code>setZoom()</code>/<code>reset()</code> methods
+  code would call, so they respect the same clamping.</p>
+
   <h2>Filters: the browser does the pixel math</h2>
   <p>Both the live preview and the canvas export apply the identical CSS
   <code>filter</code> string, so they're guaranteed to match — see

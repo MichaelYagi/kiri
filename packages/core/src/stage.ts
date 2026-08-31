@@ -28,6 +28,15 @@ export function createStage(
 
   const stageEl = document.createElement("div");
   stageEl.className = "kiri-stage";
+  // Keyboard support (see gestures.ts's onKeyDown) only fires once the
+  // element can receive focus; role/label make it announce sensibly to
+  // screen readers instead of as an unlabeled generic div.
+  stageEl.tabIndex = 0;
+  stageEl.setAttribute("role", "application");
+  stageEl.setAttribute(
+    "aria-label",
+    "Image cropper. Drag to pan. Arrow keys to pan, plus/minus to zoom, 0 to reset."
+  );
 
   const imageLayerEl = document.createElement("div");
   imageLayerEl.className = "kiri-image-layer";

@@ -48,8 +48,14 @@ export interface KiriOptions {
   rotatable?: boolean;
   /** Default `true`. */
   flippable?: boolean;
-  /** Adds a drag handle at the frame's corner. Default `false`. */
+  /** Adds drag handles at all four frame corners. Default `false`. */
   resizableFrame?: boolean;
+  /**
+   * When `resizableFrame` is on, dragging a corner handle preserves the
+   * frame's current aspect ratio (the ratio it had when the drag started)
+   * instead of resizing width/height independently. Default `false`.
+   */
+  lockAspectRatio?: boolean;
   /** `"ctrl"` requires holding Ctrl while scrolling to zoom. Default `true`. */
   mouseWheelZoom?: boolean | "ctrl";
   /** Corrects rotation + horizontal flip from EXIF data on `File`/`Blob` sources. Default `true`. */
@@ -125,6 +131,24 @@ export interface UploadOptions extends ExportOptions {
 }
 
 export type ExportResult = string | Blob | HTMLCanvasElement;
+
+/**
+ * The current crop selection expressed as a rectangle in the *original,
+ * unrotated, unflipped* source image's own pixel coordinates — for sending
+ * to a server that will crop the full-resolution original itself, instead
+ * of uploading a client-re-encoded image. `rotation`/`flip` are included so
+ * the server can reproduce the full transform (flip, then rotate, then crop
+ * to `x`/`y`/`width`/`height`) and get an identical result to what the user
+ * saw. See `getCropRegion()`.
+ */
+export interface CropRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  flip: Flip;
+}
 
 export type KiriEventName = "change";
 /** Receives the same snapshot `getState()` returns. */

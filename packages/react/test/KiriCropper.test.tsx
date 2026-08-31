@@ -70,4 +70,60 @@ describe("KiriCropper", () => {
 
     expect(seenZooms).toEqual([3]);
   });
+
+  it("applies filters prop changes live, without rebuilding the stage", async () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const ref = createRef<KiriCropperHandle>();
+
+    await act(async () => {
+      root.render(<KiriCropper ref={ref} filters={{ brightness: 1 }} />);
+    });
+    const stageBefore = container.querySelector(".kiri-stage");
+
+    await act(async () => {
+      root.render(<KiriCropper ref={ref} filters={{ brightness: 1.5 }} />);
+    });
+
+    expect(ref.current!.getState().filters.brightness).toBe(1.5);
+    expect(container.querySelector(".kiri-stage")).toBe(stageBefore); // same DOM node -> no rebuild
+  });
+
+  it("rebuilds the stage and reloads the last source when a construction-only prop changes", async () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const ref = createRef<KiriCropperHandle>();
+
+    await act(async () => {
+      root.render(<KiriCropper ref={ref} frame={{ width: 100, height: 100 }} />);
+    });
+    const stageBefore = container.querySelector(".kiri-stage");
+    ref.current!.load("data:image/png;base64,fake");
+
+    await act(async () => {
+      root.render(<KiriCropper ref={ref} frame={{ width: 150, height: 150 }} />);
+    });
+
+    const frame = container.querySelector(".kiri-frame") as HTMLElement;
+    expect(frame.style.width).toBe("150px");
+    expect(container.querySelector(".kiri-stage")).not.toBe(stageBefore); // rebuilt
+  });
+
+  it("exposes setOffset/reset/getCropRegion", async () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const ref = createRef<KiriCropperHandle>();
+
+    await act(async () => {
+      root.render(<KiriCropper ref={ref} />);
+    });
+
+    expect(typeof ref.current!.setOffset).toBe("function");
+    expect(typeof ref.current!.reset).toBe("function");
+    expect(typeof ref.current!.getCropRegion).toBe("function");
+    expect(ref.current!.getCropRegion()).toMatchObject({ rotation: 0 });
+  });
 });

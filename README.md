@@ -15,13 +15,20 @@ A dependency-free TypeScript library for interactive image cropping in the brows
 - **Filters** — brightness/contrast/saturation/grayscale/sepia, applied
   identically to the live preview and the export
 - **Automatic EXIF orientation correction** on load
-- **Resizable frame**, drag-handle based
+- **Resizable frame**, four independent corner handles, with an optional
+  `lockAspectRatio` to keep a fixed ratio while resizing
+- **`setOffset()`/`reset()`** for programmatic panning and reverting to the
+  post-`load()` state
+- **`getCropRegion()`** — the crop mapped back to the original image's own
+  pixel coordinates, for server-side cropping of the full-resolution source
+- **Keyboard-accessible** — the stage is focusable; arrow keys pan, `+`/`-`
+  zoom, `0` resets
 - **Export** to base64, Blob, or Canvas — JPEG/PNG/WebP, custom output size
 - **Upload** — a built-in FormData/fetch helper, or plug in your own
 - **Batch cropping** (`KiriBatch`) — one shared cropper stepped through a
-  queue of images
+  queue of images, with `next()`/`previous()`
 - **React and Vue wrappers** (`kiri-react`, `kiri-vue`) — thin components, no
-  duplicated logic
+  duplicated logic, reactive to prop changes after mount
 - Runtime-validated options (a typo'd setting warns and falls back rather
   than silently misbehaving), a clear error if the container element is
   missing, and a real, CSP-safe stylesheet instead of injected styles
@@ -52,8 +59,8 @@ an interactive playground, and the full API reference.
 
 ## Status
 
-**`0.1.0-alpha.1`** — first alpha release (see [CHANGELOG.md](./CHANGELOG.md)
-for what's in it). Core publishes to npm automatically on version tags via
+**`0.1.0-alpha.3`** — see [CHANGELOG.md](./CHANGELOG.md)
+for what's in it. Core publishes to npm automatically on version tags via
 GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
 is expected to be mostly stable but may still change before a `0.1.0`
 (non-alpha) release.

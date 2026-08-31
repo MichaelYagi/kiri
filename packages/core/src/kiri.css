@@ -42,7 +42,14 @@
   border: 1px solid #333;
   border-radius: 50%;
   pointer-events: auto;
+}
+.kiri-frame-handle--top-left,
+.kiri-frame-handle--bottom-right {
   cursor: nwse-resize;
+}
+.kiri-frame-handle--top-right,
+.kiri-frame-handle--bottom-left {
+  cursor: nesw-resize;
 }
 .kiri-root {
   display: inline-flex;

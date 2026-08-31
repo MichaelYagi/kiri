@@ -56,6 +56,24 @@ describe("KiriBatch", () => {
     expect(batch.results()).toEqual(["result-a", "result-b"]);
   });
 
+  it("steps backward through queued items via previous()", async () => {
+    const batch = new KiriBatch(container, {}, [{ source: "a.png" }, { source: "b.png" }, { source: "c.png" }]);
+    const loadSpy = vi.spyOn(batch.cropper, "load").mockResolvedValue(undefined);
+
+    expect(await batch.previous()).toBe(false); // nothing loaded yet
+
+    await batch.next();
+    await batch.next();
+    expect(batch.current()).toEqual({ source: "b.png" });
+
+    expect(await batch.previous()).toBe(true);
+    expect(batch.current()).toEqual({ source: "a.png" });
+    expect(loadSpy).toHaveBeenLastCalledWith("a.png", undefined);
+
+    expect(await batch.previous()).toBe(false); // already at the first item
+    expect(batch.current()).toEqual({ source: "a.png" });
+  });
+
   it("destroy() tears down the shared cropper", () => {
     const batch = new KiriBatch(container);
     const destroySpy = vi.spyOn(batch.cropper, "destroy");

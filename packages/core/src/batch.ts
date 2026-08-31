@@ -43,6 +43,15 @@ export class KiriBatch {
     return true;
   }
 
+  /** Loads the previous queued image into `cropper`. Returns false when already at the first item (or nothing loaded yet). */
+  async previous(): Promise<boolean> {
+    if (this.index <= 0) return false;
+    this.index -= 1;
+    const item = this.items[this.index];
+    await this.cropper.load(item.source, item.loadOptions);
+    return true;
+  }
+
   /** Metadata for the currently loaded item, or null before the first next() / after exhaustion. */
   current(): KiriBatchItem | null {
     return this.items[this.index] ?? null;

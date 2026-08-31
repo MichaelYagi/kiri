@@ -139,6 +139,182 @@ describe("Kiri", () => {
     expect(container.innerHTML).toBe("");
   });
 
+  describe("setOffset / reset / getCropRegion", () => {
+    // naturalSize/initialState are private; a real load() needs an actual
+    // image decode which jsdom doesn't perform, so tests set them directly —
+    // the same state load() would produce once the image resolves.
+    function withNaturalSize(cropper: Kiri, width: number, height: number): void {
+      (cropper as unknown as { naturalSize: { width: number; height: number } }).naturalSize = {
+        width,
+        height,
+      };
+    }
+
+    it("setOffset clamps so the frame stays covered by the rendered image", () => {
+      const cropper = new Kiri(container, { frame: { width: 200, height: 150 } });
+      withNaturalSize(cropper, 400, 300); // cover-scale 0.5 -> rendered exactly matches frame
+
+      cropper.setOffset({ x: 1000, y: -1000 });
+      expect(cropper.getState().offset).toEqual({ x: 0, y: 0 });
+    });
+
+    it("setOffset accepts an in-range offset", () => {
+      const cropper = new Kiri(container, { frame: { width: 200, height: 150 }, maxZoom: 4 });
+      withNaturalSize(cropper, 800, 600); // cover-scale 0.25; zoom 2x -> rendered 400x300, room to pan
+      cropper.setZoom(2);
+
+      cropper.setOffset({ x: 50, y: 20 });
+      expect(cropper.getState().offset).toEqual({ x: 50, y: 20 });
+    });
+
+    it("getCropRegion delegates to computeCropRegion using the current natural size/frame/state", () => {
+      const cropper = new Kiri(container, { frame: { width: 200, height: 150 } });
+      withNaturalSize(cropper, 400, 300);
+
+      expect(cropper.getCropRegion()).toEqual({
+        x: 0,
+        y: 0,
+        width: 400,
+        height: 300,
+        rotation: 0,
+        flip: { horizontal: false, vertical: false },
+      });
+    });
+
+    it("reset() reverts zoom/rotation/flip/filters to the post-load() snapshot", async () => {
+      const cropper = new Kiri(container, { minZoom: 1, maxZoom: 4 });
+      const imgEl = container.querySelector("img") as HTMLImageElement;
+      const loadPromise = cropper.load("fake.jpg", { zoom: 2, rotation: 90 });
+      imgEl.onload?.(new Event("load"));
+      await loadPromise;
+
+      cropper.setZoom(4);
+      cropper.rotate(90);
+      cropper.flipHorizontal();
+      cropper.setFilters({ brightness: 1.8 });
+
+      cropper.reset();
+
+      expect(cropper.getState()).toEqual({
+        zoom: 2,
+        offset: { x: 0, y: 0 },
+        rotation: 90,
+        flip: { horizontal: false, vertical: false },
+        filters: { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false },
+      });
+    });
+
+    it("reset() is a no-op before anything has been loaded", () => {
+      const cropper = new Kiri(container);
+      cropper.setZoom(3);
+      cropper.reset();
+      expect(cropper.getState().zoom).toBe(3);
+    });
+  });
+
+  describe("resizableFrame / lockAspectRatio", () => {
+    function drag(handle: Element, dx: number, dy: number): void {
+      // jsdom doesn't implement pointer capture.
+      (handle as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+      handle.dispatchEvent(
+        Object.assign(new Event("pointerdown"), { clientX: 0, clientY: 0, pointerId: 1 })
+      );
+      handle.dispatchEvent(
+        Object.assign(new Event("pointermove"), { clientX: dx, clientY: dy, pointerId: 1 })
+      );
+    }
+
+    it("creates four corner handles when resizableFrame is enabled", () => {
+      new Kiri(container, { resizableFrame: true });
+      expect(container.querySelectorAll(".kiri-frame-handle")).toHaveLength(4);
+      expect(container.querySelector(".kiri-frame-handle--top-left")).not.toBeNull();
+      expect(container.querySelector(".kiri-frame-handle--top-right")).not.toBeNull();
+      expect(container.querySelector(".kiri-frame-handle--bottom-left")).not.toBeNull();
+      expect(container.querySelector(".kiri-frame-handle--bottom-right")).not.toBeNull();
+    });
+
+    it("dragging the bottom-right handle grows both axes with the drag direction", () => {
+      const cropper = new Kiri(container, { frame: { width: 100, height: 100 }, resizableFrame: true });
+      const handle = container.querySelector(".kiri-frame-handle--bottom-right") as Element;
+
+      drag(handle, 10, 5);
+
+      expect(cropper.getState()).toBeDefined(); // state unaffected; check frame size instead
+      const frame = container.querySelector(".kiri-frame") as HTMLElement;
+      expect(frame.style.width).toBe("120px"); // 100 + 10*2
+      expect(frame.style.height).toBe("110px"); // 100 + 5*2
+    });
+
+    it("dragging the top-left handle grows both axes when moving away from center", () => {
+      const cropper = new Kiri(container, { frame: { width: 100, height: 100 }, resizableFrame: true });
+      const handle = container.querySelector(".kiri-frame-handle--top-left") as Element;
+
+      drag(handle, -10, -5);
+
+      const frame = container.querySelector(".kiri-frame") as HTMLElement;
+      expect(frame.style.width).toBe("120px");
+      expect(frame.style.height).toBe("110px");
+      expect(cropper).toBeDefined();
+    });
+
+    it("preserves aspect ratio when lockAspectRatio is enabled", () => {
+      new Kiri(container, {
+        frame: { width: 100, height: 200 }, // 1:2 aspect
+        resizableFrame: true,
+        lockAspectRatio: true,
+      });
+      const handle = container.querySelector(".kiri-frame-handle--bottom-right") as Element;
+
+      drag(handle, 50, 0); // width-dominant drag
+
+      const frame = container.querySelector(".kiri-frame") as HTMLElement;
+      expect(frame.style.width).toBe("200px"); // 100 + 50*2
+      expect(frame.style.height).toBe("400px"); // ratio preserved: 200 / (100/200)
+    });
+
+    it("removes all four handles on destroy", () => {
+      const cropper = new Kiri(container, { resizableFrame: true });
+      cropper.destroy();
+      expect(container.querySelectorAll(".kiri-frame-handle")).toHaveLength(0);
+    });
+  });
+
+  describe("keyboard accessibility", () => {
+    it("marks the stage focusable and labeled", () => {
+      new Kiri(container);
+      const stage = container.querySelector(".kiri-stage") as HTMLElement;
+      expect(stage.tabIndex).toBe(0);
+      expect(stage.getAttribute("role")).toBe("application");
+      expect(stage.getAttribute("aria-label")).toMatch(/crop/i);
+    });
+
+    it("+/- keys zoom in/out", () => {
+      const cropper = new Kiri(container, { minZoom: 1, maxZoom: 4 });
+      const stage = container.querySelector(".kiri-stage") as HTMLElement;
+
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "+" }));
+      expect(cropper.getState().zoom).toBeCloseTo(1.1);
+
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "-" }));
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "-" }));
+      expect(cropper.getState().zoom).toBe(1); // clamped at minZoom
+    });
+
+    it("0 key calls reset()", async () => {
+      const cropper = new Kiri(container);
+      const imgEl = container.querySelector("img") as HTMLImageElement;
+      const loadPromise = cropper.load("fake.jpg", { zoom: 1 });
+      imgEl.onload?.(new Event("load"));
+      await loadPromise;
+
+      cropper.setZoom(3);
+      const stage = container.querySelector(".kiri-stage") as HTMLElement;
+      stage.dispatchEvent(new KeyboardEvent("keydown", { key: "0" }));
+
+      expect(cropper.getState().zoom).toBe(1);
+    });
+  });
+
   describe("invalid option values", () => {
     it("falls back to rectangle and warns on an invalid frame.shape", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});

@@ -1,6 +1,55 @@
 import { describe, expect, it, vi } from "vitest";
-import { computeFrameSourceRect, exportCrop } from "../src/export";
+import { computeCropRegion, computeFrameSourceRect, exportCrop } from "../src/export";
 import type { KiriState } from "../src/types";
+
+const noFlip = { horizontal: false, vertical: false };
+const baseFilters = { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false };
+
+function state(overrides: Partial<KiriState>): KiriState {
+  return { zoom: 1, offset: { x: 0, y: 0 }, rotation: 0, flip: noFlip, filters: baseFilters, ...overrides };
+}
+
+describe("computeCropRegion", () => {
+  it("returns the full image when the frame exactly covers the cover-scaled image", () => {
+    const region = computeCropRegion(
+      { width: 400, height: 300 },
+      { width: 200, height: 150 },
+      state({})
+    );
+    expect(region).toEqual({ x: 0, y: 0, width: 400, height: 300, rotation: 0, flip: noFlip });
+  });
+
+  it("shrinks the region when a pan offset drags the frame past an image edge", () => {
+    // Frame (200x150) covers exactly the scaled image (200x150 at scale
+    // 0.5); shifting the image right by 50 rendered px pushes the frame's
+    // left edge 100 natural px past the image's own left edge (0), so the
+    // crop region must clip, not just shift.
+    const region = computeCropRegion(
+      { width: 400, height: 300 },
+      { width: 200, height: 150 },
+      state({ offset: { x: 50, y: 0 } })
+    );
+    expect(region).toEqual({ x: 0, y: 0, width: 300, height: 300, rotation: 0, flip: noFlip });
+  });
+
+  it("maps a 90-degree rotation back into the original image's own axes", () => {
+    const region = computeCropRegion(
+      { width: 400, height: 300 },
+      { width: 150, height: 150 },
+      state({ rotation: 90 })
+    );
+    expect(region).toEqual({ x: 50, y: 0, width: 300, height: 300, rotation: 90, flip: noFlip });
+  });
+
+  it("carries flip through untouched, since mirroring is content-only", () => {
+    const region = computeCropRegion(
+      { width: 400, height: 300 },
+      { width: 200, height: 150 },
+      state({ flip: { horizontal: true, vertical: false } })
+    );
+    expect(region.flip).toEqual({ horizontal: true, vertical: false });
+  });
+});
 
 describe("computeFrameSourceRect", () => {
   it("centers the frame on the rendered image when offset is zero", () => {

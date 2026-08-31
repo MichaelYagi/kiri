@@ -63,7 +63,13 @@ fileInput.addEventListener("change", () => {
   statusEl.textContent = `Editing item ${batch.current().source.name}`;
 });
 
+prevButton.addEventListener("click", () => batch.previous());
 captureButton.addEventListener("click", () => batch.capture());</code></pre>
+  <p><code>previous()</code> is the mirror image of <code>next()</code> — it
+  steps <code>cropper</code> back one item and returns <code>false</code>
+  (without moving) once you're already on the first item, so a "Back" button
+  can disable itself the same way a "Next" button does at the end of the
+  queue.</p>
 
   <p>See the full method list on the <a href="methods.html">Methods</a> page,
   and a working version on the <a href="../examples/batch-cropping.html">batch

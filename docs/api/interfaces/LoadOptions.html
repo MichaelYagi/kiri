@@ -15,7 +15,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">LoadOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#zoom">zoom</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#offset">offset</a><span class="tsd-signature-symbol">?:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rotation">rotation</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#flip">flip</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="Flip.html" class="tsd-signature-type tsd-kind-interface">Flip</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c4ca6674d2ddef05eaec3383711fa6b148495534/packages/core/src/types.ts#L85">types.ts:85</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c1ebd07ed7960d08a27660c245950eba683063d0/packages/core/src/types.ts#L91">types.ts:91</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -37,28 +37,28 @@
 <div class="tsd-comment tsd-typography"><p>Clamped to <code>[minZoom, maxZoom]</code>. Default <code>minZoom</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c4ca6674d2ddef05eaec3383711fa6b148495534/packages/core/src/types.ts#L87">types.ts:87</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c1ebd07ed7960d08a27660c245950eba683063d0/packages/core/src/types.ts#L93">types.ts:93</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="offset"><code class="tsd-tag">Optional</code><span>offset</span><a href="#offset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">offset</span><span class="tsd-signature-symbol">?:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a></div>
 <div class="tsd-comment tsd-typography"><p>Clamped so the frame stays covered by the image. Default <code>{ x: 0, y: 0 }</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c4ca6674d2ddef05eaec3383711fa6b148495534/packages/core/src/types.ts#L89">types.ts:89</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c1ebd07ed7960d08a27660c245950eba683063d0/packages/core/src/types.ts#L95">types.ts:95</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rotation"><code class="tsd-tag">Optional</code><span>rotation</span><a href="#rotation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rotation</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>Degrees, snapped to the nearest 90°. Default <code>0</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c4ca6674d2ddef05eaec3383711fa6b148495534/packages/core/src/types.ts#L91">types.ts:91</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c1ebd07ed7960d08a27660c245950eba683063d0/packages/core/src/types.ts#L97">types.ts:97</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="flip"><code class="tsd-tag">Optional</code><span>flip</span><a href="#flip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">flip</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="Flip.html" class="tsd-signature-type tsd-kind-interface">Flip</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>Default <code>{ horizontal: false, vertical: false }</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c4ca6674d2ddef05eaec3383711fa6b148495534/packages/core/src/types.ts#L93">types.ts:93</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/c1ebd07ed7960d08a27660c245950eba683063d0/packages/core/src/types.ts#L99">types.ts:99</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

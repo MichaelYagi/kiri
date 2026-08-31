@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.3
+
+### Core (`@michaelyagi/kiri`)
+
+- `setOffset(offset)`: sets pan to an absolute value (clamped, same as
+  drag), for programmatic centering/positioning without simulating a drag.
+- `reset()`: reverts zoom/offset/rotation/flip/filters to whatever they
+  were right after `load()` resolved. No-op before anything's loaded.
+- `getCropRegion()`: returns the current crop selection as `{ x, y, width,
+  height, rotation, flip }` in the *original, unrotated, unflipped* source
+  image's own pixel coordinates — for sending to a server that crops the
+  full-resolution original itself instead of uploading a client-re-encoded
+  image.
+- `resizableFrame` now adds a drag handle at all **four** frame corners
+  (previously bottom-right only), each independently resizing the frame
+  from that corner.
+- New `lockAspectRatio` option: when `resizableFrame` is on, dragging a
+  corner handle preserves the frame's current aspect ratio instead of
+  resizing width/height independently.
+- `KiriBatch.previous()`: mirrors `next()` — steps the shared cropper back
+  one item; `false` (no-op) at the first item or before anything's loaded.
+- Keyboard accessibility: the stage is now a focusable, labeled element
+  (`tabindex="0"`, `role="application"`, `aria-label`). Arrow keys pan,
+  `+`/`-` zoom, `0` resets — all through the same public methods a caller
+  would use, so the same clamping applies.
+
+### `kiri-react` / `kiri-vue`
+
+- `<KiriCropper>` now reacts to prop changes after mount instead of only
+  capturing them once at construction: `filters` is applied live via
+  `setFilters()` (no rebuild); every other option (`frame`, `minZoom`,
+  `resizableFrame`, `lockAspectRatio`, etc.) rebuilds the underlying `Kiri`
+  instance and automatically reloads whatever source was last passed to
+  `load()`.
+- New `lockAspectRatio` prop.
+- The imperative handle / exposed methods gained `setOffset`, `reset`, and
+  `getCropRegion`, matching core.
+
 ## 0.1.0-alpha.2
 
 - Core is now published to npm as **`@michaelyagi/kiri`** (renamed from the
