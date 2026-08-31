@@ -24,7 +24,7 @@
     "react": ">=18"
   },
   "dependencies": {
-    "kiri": "^0.1.0-alpha.1"
+    "@michaelyagi/kiri": "^0.1.0-alpha.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

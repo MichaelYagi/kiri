@@ -1,7 +1,17 @@
 {
-  "name": "kiri",
+  "name": "@michaelyagi/kiri",
   "version": "0.1.0-alpha.1",
   "description": "A dependency-free TypeScript library for interactive image cropping in the browser.",
+  "homepage": "https://michaelyagi.github.io/kiri",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MichaelYagi/kiri.git",
+    "directory": "packages/core"
+  },
+  "bugs": "https://github.com/MichaelYagi/kiri/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/kiri.min.js",
   "module": "./dist/kiri.mjs",
   "unpkg": "./dist/kiri.min.js",

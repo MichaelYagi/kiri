@@ -1,7 +1,15 @@
 # Changelog
 
 All notable changes to this project are documented here. Versions apply to
-all three packages (`kiri`, `kiri-react`, `kiri-vue`) in lockstep.
+all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
+
+## Unreleased
+
+- Core is now published to npm as **`@michaelyagi/kiri`** (renamed from the
+  unscoped `kiri`) — `kiri-react`/`kiri-vue` stay unpublished for now, and
+  keep their unscoped internal names.
+- Publishing is automated: `.github/workflows/publish.yml` builds, tests, and
+  runs `npm publish` on any `v*` git tag push.
 
 ## 0.1.0-alpha.1
 

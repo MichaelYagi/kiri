@@ -24,7 +24,7 @@
     "vue": ">=3"
   },
   "dependencies": {
-    "kiri": "^0.1.0-alpha.1"
+    "@michaelyagi/kiri": "^0.1.0-alpha.1"
   },
   "devDependencies": {
     "jsdom": "^25.0.0",

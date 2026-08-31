@@ -1,5 +1,5 @@
 import { defineComponent, h, onBeforeUnmount, onMounted, ref, type PropType } from "vue";
-import { Kiri } from "kiri";
+import { Kiri } from "@michaelyagi/kiri";
 import type {
   ExportOptions,
   ExportResult,
@@ -8,7 +8,7 @@ import type {
   KiriState,
   LoadOptions,
   UploadOptions,
-} from "kiri";
+} from "@michaelyagi/kiri";
 
 export interface KiriCropperExposed {
   load: (source: File | Blob | string, options?: LoadOptions) => Promise<void>;

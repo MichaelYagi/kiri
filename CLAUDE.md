@@ -7,8 +7,9 @@ Guidance for Claude Code when working in this repository.
 Kiri — a dependency-free TypeScript library for interactive image cropping in the
 browser (drag/zoom/rotate/flip an image inside a fixed frame, apply filters,
 export/upload the crop). A monorepo: the core library (`packages/core`, published
-as `kiri`) plus thin React/Vue wrapper components (`packages/react` → `kiri-react`,
-`packages/vue` → `kiri-vue`) that reuse the core's logic rather than duplicating
+to npm as `@michaelyagi/kiri`) plus thin React/Vue wrapper components
+(`packages/react` → `kiri-react`, `packages/vue` → `kiri-vue`, both unpublished
+internal names for now) that reuse the core's logic rather than duplicating
 it. See `design.md` for the full design doc, public API shape, and rationale.
 
 This is an original implementation. Do not reference, name-check, or copy naming
@@ -17,8 +18,11 @@ messages.
 
 ## Status
 
-Released as `0.1.0-alpha.1` (all three packages, in lockstep) — not yet
-published to npm. See `CHANGELOG.md` for what's in this release. v1 (full
+Released as `0.1.0-alpha.1` (all three packages, in lockstep). Core publishes
+to npm as `@michaelyagi/kiri` automatically on `v*` git tags (see
+`design.md`'s "Publishing" section and `.github/workflows/publish.yml`);
+`kiri-react`/`kiri-vue` stay unpublished for now. See `CHANGELOG.md` for
+what's in this release. v1 (full
 parity) plus the extended feature set is implemented: filters
 (brightness/contrast/saturation/grayscale/sepia), `upload()`, `KiriBatch`
 (multi-image queue), a built-in zoom slider, and the React/Vue wrapper
@@ -31,16 +35,20 @@ version whenever a release-worthy change lands.
 
 - TypeScript, zero runtime dependencies in core, framework-agnostic (attaches to
   a plain DOM element); the wrapper packages depend only on their own framework
-  as a peer dependency plus `kiri` itself.
+  as a peer dependency plus `@michaelyagi/kiri` itself.
 - npm workspaces (`workspaces: ["packages/*"]` at the root) — one lockfile,
-  `kiri-react`/`kiri-vue`'s `"kiri"` dependency resolves to `packages/core` via
-  the workspace, not the npm registry.
+  `kiri-react`/`kiri-vue`'s `"@michaelyagi/kiri"` dependency resolves to
+  `packages/core` via the workspace, not the npm registry.
 - Build: Vite in library mode per package, `vite-plugin-dts` for type
   declarations. Core's config is `vite.config.mts` (not `.ts`) — the package
   intentionally has no top-level `"type": "module"` (see below), and `.mts`
   forces Vite to load its own config as ESM regardless of that. Wrappers
-  output ESM + CJS with `react`/`react-dom`/`vue`/`kiri` externalized (peer
-  deps, not bundled). Source maps are on (`build.sourcemap: true`).
+  output ESM + CJS with `react`/`react-dom`/`vue`/`@michaelyagi/kiri`
+  externalized (peer deps, not bundled) — **the `rollupOptions.external` entry
+  in each wrapper's `vite.config.ts` must say `"@michaelyagi/kiri"`, not
+  `"kiri"`, or Vite silently bundles the entire core library into the wrapper's
+  output instead of externalizing it** (a ~10x dist size jump is the tell).
+  Source maps are on (`build.sourcemap: true`).
 - Core's dist filenames are explicit, not Vite's defaults: **`kiri.min.js`**
   (UMD/CJS, minified, the `<script>`-tag-ready build — `main`/`require`),
   **`kiri.js`** (same UMD/CJS build, unminified, for devtools debugging), and
@@ -62,8 +70,8 @@ version whenever a release-worthy change lands.
   stylesheet (not JS-injected). The build script copies it verbatim to
   `dist/kiri.css` and minifies it to `dist/kiri.min.css` via esbuild's CSS
   transform (no separate CSS build tool). Consumers `import
-  "kiri/kiri.min.css"` (or the unminified `kiri/kiri.css` for debugging). The
-  demo imports
+  "@michaelyagi/kiri/kiri.min.css"` (or the unminified
+  `@michaelyagi/kiri/kiri.css` for debugging). The demo imports
   the *source* `kiri.css` from `main.ts` (not a `<link>` tag — Vite's dev
   root is `demo/`, so a relative `<link href="../src/kiri.css">` 404s; a JS
   `import` resolves correctly against the filesystem regardless of dev root).
@@ -154,6 +162,7 @@ surface too (`packages/react/src/KiriCropper.tsx`,
 ## Non-goals
 
 No remaining deliberate non-goals — the original v1 non-goals list (upload,
-filters, batch, wrappers) has all been implemented. Still explicitly out of
-scope unless asked: a `KiriBatch` gallery/thumbnail UI (it's a queue manager
-only), and actually publishing the packages to npm.
+filters, batch, wrappers) has all been implemented, and core now publishes to
+npm automatically. Still explicitly out of scope unless asked: a `KiriBatch`
+gallery/thumbnail UI (it's a queue manager only), and publishing
+`kiri-react`/`kiri-vue` to npm.

@@ -28,6 +28,14 @@ A dependency-free TypeScript library for interactive image cropping in the brows
 - Ships as ESM for bundlers and UMD/CJS for a plain `<script>` tag —
   minified and unminified builds of both
 
+## Install
+
+```bash
+npm install @michaelyagi/kiri
+```
+
+[npmjs.com/package/@michaelyagi/kiri](https://www.npmjs.com/package/@michaelyagi/kiri)
+
 ## Documentation
 
 **[michaelyagi.github.io/kiri](https://michaelyagi.github.io/kiri)** —
@@ -38,16 +46,17 @@ an interactive playground, and the full API reference.
 
 | Package | Path | What it is |
 |---|---|---|
-| `kiri` | `packages/core` | The library itself — framework-agnostic |
-| `kiri-react` | `packages/react` | `<KiriCropper>` React component |
-| `kiri-vue` | `packages/vue` | `<KiriCropper>` Vue component |
+| `@michaelyagi/kiri` | `packages/core` | The library itself — framework-agnostic |
+| `kiri-react` | `packages/react` | `<KiriCropper>` React component (unpublished) |
+| `kiri-vue` | `packages/vue` | `<KiriCropper>` Vue component (unpublished) |
 
 ## Status
 
-**`0.1.0-alpha.1`** — first alpha release. Not yet published to npm (see
-[CHANGELOG.md](./CHANGELOG.md) for what's in this release); install from this
-repo (npm workspaces) until then. The public API is expected to be mostly
-stable but may still change before a `0.1.0` (non-alpha) release.
+**`0.1.0-alpha.1`** — first alpha release (see [CHANGELOG.md](./CHANGELOG.md)
+for what's in it). Core publishes to npm automatically on version tags via
+GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
+is expected to be mostly stable but may still change before a `0.1.0`
+(non-alpha) release.
 
 ## Development
 

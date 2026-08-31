@@ -46,7 +46,7 @@ chosen to be more literal/intuitive.)
 ## Public API (draft)
 
 ```ts
-import { Kiri } from "kiri";
+import { Kiri } from "@michaelyagi/kiri";
 
 const cropper = new Kiri(containerElement, {
   frame: { shape: "circle", width: 200, height: 200 },
@@ -206,8 +206,8 @@ default rather than silently misbehaving. `resolveEnumOption()` in
 
 Kiri ships a real, separate stylesheet (`kiri.css`) rather than injecting a
 `<style>` tag at runtime — standard, CSP-safe, and easy for a consumer to
-override or theme. Consumers import it explicitly: `import "kiri/kiri.min.css"`
-(bundler) or a `<link>` to `node_modules/kiri/dist/kiri.min.css` directly.
+override or theme. Consumers import it explicitly: `import "@michaelyagi/kiri/kiri.min.css"`
+(bundler) or a `<link>` to `node_modules/@michaelyagi/kiri/dist/kiri.min.css` directly.
 
 ## Extended features
 
@@ -279,7 +279,7 @@ kiri/
 ├── package.json           # root: private, npm workspaces ["packages/*"]
 ├── design.md, CLAUDE.md, README.md
 └── packages/
-    ├── core/                # published as "kiri"
+    ├── core/                # published as "@michaelyagi/kiri"
     │   ├── src/
     │   │   ├── index.ts       # public entry: re-exports Kiri, KiriBatch, types
     │   │   ├── kiri.ts        # public Kiri class
@@ -337,17 +337,36 @@ kiri/
   during development.
 - **Package manager**: npm, with npm workspaces (`workspaces: ["packages/*"]`
   in the root `package.json`) — one lockfile at the root, `kiri-react`/
-  `kiri-vue`'s `"kiri"` dependency resolves to the local `packages/core` via
-  the workspace.
+  `kiri-vue`'s `"@michaelyagi/kiri"` dependency resolves to the local
+  `packages/core` via the workspace, not the registry.
 - **Tests**: Vitest per package. `kiri-react` mounts via `react-dom/client`
   `createRoot` + `act` from `react`; `kiri-vue` mounts via Vue's own
   `createApp().mount()` — neither wrapper's test suite needs an extra testing
   library beyond the framework itself.
+
+## Publishing
+
+Core (`@michaelyagi/kiri`, `packages/core`) publishes to npm automatically —
+`.github/workflows/publish.yml` triggers on any `v*` git tag push, then
+type-checks, tests, builds, and runs `npm publish --workspace=@michaelyagi/kiri
+--provenance` (provenance cryptographically links the published package to the
+exact GitHub Actions run that built it — a supply-chain trust signal shown on
+the npm package page). Authenticates via an `NPM_TOKEN` repo secret (an npm
+"Automation" token); `packages/core/package.json`'s `"publishConfig": {
+"access": "public" }` is what makes a scoped package publish as public rather
+than the npm default (private) for scoped packages.
+
+The workflow publishes whatever version is currently in
+`packages/core/package.json` — **bump that version and commit it before
+tagging**, so the tag and the published version match. `kiri-react`/
+`kiri-vue` are not part of this workflow and stay unpublished (workspace-
+internal names only) until that's revisited.
 
 ## Open questions / future work
 
 - Touch/pinch gesture precision on mobile — needs real-device testing.
 - `KiriBatch` currently has no built-in gallery/thumbnail UI — it's a queue
   manager only; a consumer builds their own UI around `next()`/`current()`.
-- Publishing to npm hasn't happened yet — package names (`kiri`, `kiri-react`,
-  `kiri-vue`) are reserved by convention here, not yet claimed on the registry.
+- `@michaelyagi/kiri` (core) publishes to npm automatically on version tags —
+  see the "Publishing" section below. `kiri-react`/`kiri-vue` stay unpublished
+  for now, workspace-internal names only.

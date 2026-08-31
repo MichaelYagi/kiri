@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import type { CSSProperties } from "react";
-import { Kiri } from "kiri";
+import { Kiri } from "@michaelyagi/kiri";
 import type {
   ExportOptions,
   ExportResult,
@@ -9,7 +9,7 @@ import type {
   KiriState,
   LoadOptions,
   UploadOptions,
-} from "kiri";
+} from "@michaelyagi/kiri";
 
 export interface KiriCropperProps {
   frame?: KiriOptions["frame"];

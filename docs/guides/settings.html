@@ -52,22 +52,115 @@
 });</code></pre>
 
   <table>
-    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
-    <tr><td><code>frame.shape</code></td><td>string</td><td><code>"rectangle"</code>, <code>"circle"</code></td><td><code>"rectangle"</code></td></tr>
-    <tr><td><code>frame.width</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td></tr>
-    <tr><td><code>frame.height</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td></tr>
-    <tr><td><code>minZoom</code></td><td>number</td><td>any positive number ≤ <code>maxZoom</code></td><td><code>1</code></td></tr>
-    <tr><td><code>maxZoom</code></td><td>number</td><td>any positive number ≥ <code>minZoom</code></td><td><code>4</code></td></tr>
-    <tr><td><code>rotatable</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
-    <tr><td><code>flippable</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
-    <tr><td><code>resizableFrame</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
-    <tr><td><code>mouseWheelZoom</code></td><td>boolean | string</td><td><code>true</code>, <code>false</code>, <code>"ctrl"</code></td><td><code>true</code></td></tr>
-    <tr><td><code>useExifOrientation</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
-    <tr><td><code>autoSizeStage</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
-    <tr><td><code>showZoomer</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
-    <tr><td><code>zoomerPosition</code></td><td>string</td><td><code>"top"</code>, <code>"bottom"</code>, <code>"left"</code>, <code>"right"</code></td><td><code>"bottom"</code></td></tr>
-    <tr><td><code>filters.*</code></td><td>—</td><td>see <a href="filters.html">Filters</a></td><td>—</td></tr>
-    <tr><td><code>uploader</code></td><td>function</td><td><code>(blob, options &amp; {url}) =&gt; Promise&lt;unknown&gt;</code></td><td>none — falls back to the built-in FormData/fetch uploader</td></tr>
+    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th><th>Description</th></tr>
+    <tr>
+      <td><code>frame.shape</code></td><td>string</td>
+      <td><code>"rectangle"</code>, <code>"circle"</code></td><td><code>"rectangle"</code></td>
+      <td>The shape of the crop selection. <code>"circle"</code> is a real clip on
+      export too (transparent corners on PNG/WebP) — see
+      <a href="architecture.html">Architecture</a>.</td>
+    </tr>
+    <tr>
+      <td><code>frame.width</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td>
+      <td>Width of the crop selection, in pixels. This is also the default
+      output width for <code>export()</code>.</td>
+    </tr>
+    <tr>
+      <td><code>frame.height</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td>
+      <td>Height of the crop selection, in pixels. Also the default output
+      height for <code>export()</code>.</td>
+    </tr>
+    <tr>
+      <td><code>minZoom</code></td><td>number</td><td>any positive number ≤ <code>maxZoom</code></td><td><code>1</code></td>
+      <td>The lower bound on zoom — how far the user (or <code>setZoom()</code>)
+      can zoom <em>out</em>. <code>1</code> means "the image is only ever as
+      small as needed to fully cover the frame" (its natural minimum); you
+      can't go smaller than that regardless of this setting. Raise it (e.g.
+      <code>1.5</code>) to force the image to always fill more of the frame
+      than its bare minimum.</td>
+    </tr>
+    <tr>
+      <td><code>maxZoom</code></td><td>number</td><td>any positive number ≥ <code>minZoom</code></td><td><code>4</code></td>
+      <td>The upper bound on zoom — how far the user (or <code>setZoom()</code>)
+      can zoom <em>in</em>. Lower it to stop people zooming in so far the
+      exported image looks pixelated.</td>
+    </tr>
+    <tr>
+      <td><code>rotatable</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td>
+      <td>When <code>true</code>, calling <code>cropper.rotate(90)</code>
+      actually rotates the image 90°, and you can call it repeatedly to keep
+      rotating. When <code>false</code>, <code>rotate()</code> becomes a
+      silent no-op — nothing happens, no error — which is useful if you want
+      to hide/disable a rotate button in your own UI and guarantee rotation
+      can't happen even if that call is somehow still made. It has no effect
+      on drag/zoom/flip — those keep working either way.</td>
+    </tr>
+    <tr>
+      <td><code>flippable</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td>
+      <td>Same idea as <code>rotatable</code>, but for
+      <code>flipHorizontal()</code>/<code>flipVertical()</code>. When
+      <code>false</code>, both become no-ops.</td>
+    </tr>
+    <tr>
+      <td><code>resizableFrame</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td>
+      <td>When <code>true</code>, a small drag handle appears at the frame's
+      bottom-right corner — dragging it calls <code>setFrameSize()</code> for
+      you, live, letting the end user resize the crop selection with the
+      mouse/touch instead of only via code. See the
+      <a href="../examples/resizable-frame.html">resizable frame example</a>.</td>
+    </tr>
+    <tr>
+      <td><code>mouseWheelZoom</code></td><td>boolean | string</td><td><code>true</code>, <code>false</code>, <code>"ctrl"</code></td><td><code>true</code></td>
+      <td>Whether scrolling the mouse wheel (or a trackpad pinch) over the
+      stage zooms the image. <code>false</code> disables it entirely (zoom
+      only via <code>setZoom()</code> or a <code>showZoomer</code> slider).
+      <code>"ctrl"</code> requires holding the Ctrl key while scrolling to
+      zoom — useful on a page where you also want normal page-scroll to work
+      when the cursor happens to be over the cropper.</td>
+    </tr>
+    <tr>
+      <td><code>useExifOrientation</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td>
+      <td>When <code>true</code>, <code>load()</code> reads EXIF orientation
+      data from a <code>File</code>/<code>Blob</code> (e.g. a photo straight
+      off a phone camera) and automatically applies the correct
+      rotation/flip so it displays right-side up. Set <code>false</code> to
+      skip that check (e.g. if you've already normalized images
+      server-side).</td>
+    </tr>
+    <tr>
+      <td><code>autoSizeStage</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td>
+      <td>When <code>true</code>, the stage (the visible box) sizes itself to
+      the frame's dimensions plus a small margin — you don't need any CSS on
+      the container element for it to look right. Set <code>false</code> if
+      you'd rather the stage fill its container via your own CSS instead
+      (100% width/height) — see <a href="architecture.html">Architecture</a>.</td>
+    </tr>
+    <tr>
+      <td><code>showZoomer</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td>
+      <td>When <code>true</code>, Kiri renders its own
+      <code>&lt;input type="range"&gt;</code> zoom slider next to the stage —
+      no manual wiring needed. See the
+      <a href="../examples/zoom-slider.html">zoom slider example</a>.</td>
+    </tr>
+    <tr>
+      <td><code>zoomerPosition</code></td><td>string</td><td><code>"top"</code>, <code>"bottom"</code>, <code>"left"</code>, <code>"right"</code></td><td><code>"bottom"</code></td>
+      <td>Only matters when <code>showZoomer: true</code>. Which side of the
+      stage the slider sits on — purely a placement choice, identical zoom
+      behavior in every position.</td>
+    </tr>
+    <tr>
+      <td><code>filters.*</code></td><td>—</td><td>see <a href="filters.html">Filters</a></td><td>—</td>
+      <td>Initial brightness/contrast/saturation/grayscale/sepia values —
+      same shape as <code>setFilters()</code> takes. See
+      <a href="filters.html">Filters</a>.</td>
+    </tr>
+    <tr>
+      <td><code>uploader</code></td><td>function</td><td><code>(blob, options &amp; {url}) =&gt; Promise&lt;unknown&gt;</code></td><td>none — falls back to the built-in FormData/fetch uploader</td>
+      <td>Overrides how <code>upload()</code> actually sends the crop — plug
+      in your own function (e.g. to hit a presigned-URL flow or a GraphQL
+      mutation) instead of the default FormData POST. Can also be overridden
+      per-call via <code>UploadOptions.uploader</code>.</td>
+    </tr>
   </table>
 
   <p><strong><code>autoSizeStage</code></strong>: when <code>true</code>
@@ -78,29 +171,92 @@
   the stage's size directly.</p>
 
   <h2 id="load">load() options</h2>
+  <p>Lets you open an image already zoomed/panned/rotated a certain way,
+  instead of always starting from scratch — useful for restoring a
+  previously-saved crop state.</p>
   <table>
-    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
-    <tr><td><code>zoom</code></td><td>number</td><td>clamped to <code>[minZoom, maxZoom]</code></td><td><code>minZoom</code></td></tr>
-    <tr><td><code>offset.x</code> / <code>offset.y</code></td><td>number</td><td>clamped so the frame stays covered</td><td><code>0</code></td></tr>
-    <tr><td><code>rotation</code></td><td>number (degrees)</td><td>snapped to the nearest 90°</td><td><code>0</code></td></tr>
-    <tr><td><code>flip.horizontal</code> / <code>flip.vertical</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
+    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th><th>Description</th></tr>
+    <tr>
+      <td><code>zoom</code></td><td>number</td><td>clamped to <code>[minZoom, maxZoom]</code></td><td><code>minZoom</code></td>
+      <td>Starting zoom level, as if <code>setZoom()</code> had been called
+      right after loading.</td>
+    </tr>
+    <tr>
+      <td><code>offset.x</code> / <code>offset.y</code></td><td>number</td><td>clamped so the frame stays covered</td><td><code>0</code></td>
+      <td>Starting pan position, in pixels from center. Clamped automatically
+      so the frame can never show past the image's edge.</td>
+    </tr>
+    <tr>
+      <td><code>rotation</code></td><td>number (degrees)</td><td>snapped to the nearest 90°</td><td><code>0</code></td>
+      <td>Starting rotation, as if <code>rotate()</code> had already been
+      called that many degrees.</td>
+    </tr>
+    <tr>
+      <td><code>flip.horizontal</code> / <code>flip.vertical</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td>
+      <td>Starting flip state, as if <code>flipHorizontal()</code>/<code>flipVertical()</code>
+      had already been called.</td>
+    </tr>
   </table>
 
   <h2 id="export">export() / upload() options</h2>
   <p><code>upload(url, options)</code> takes everything <code>export()</code>
   does, plus a few upload-only fields.</p>
   <table>
-    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
-    <tr><td><code>type</code></td><td>string</td><td><code>"base64"</code>, <code>"blob"</code>, <code>"canvas"</code></td><td><code>"base64"</code></td></tr>
-    <tr><td><code>format</code></td><td>string</td><td><code>"image/jpeg"</code>, <code>"image/png"</code>, <code>"image/webp"</code></td><td><code>"image/png"</code></td></tr>
-    <tr><td><code>quality</code></td><td>number</td><td><code>0</code>–<code>1</code> (jpeg/webp only)</td><td>browser default</td></tr>
-    <tr><td><code>width</code></td><td>number</td><td>any positive pixel size</td><td>frame width</td></tr>
-    <tr><td><code>height</code></td><td>number</td><td>any positive pixel size</td><td>frame height</td></tr>
-    <tr><td><code>fieldName</code> <em>(upload only)</em></td><td>string</td><td>any</td><td><code>"file"</code></td></tr>
-    <tr><td><code>fileName</code> <em>(upload only)</em></td><td>string</td><td>any</td><td><code>"crop.&lt;ext&gt;"</code>, from <code>format</code></td></tr>
-    <tr><td><code>extraFields</code> <em>(upload only)</em></td><td>object</td><td>any <code>Record&lt;string,string&gt;</code></td><td><code>{}</code></td></tr>
-    <tr><td><code>fetchOptions</code> <em>(upload only)</em></td><td>object</td><td>any valid fetch init</td><td><code>{}</code></td></tr>
-    <tr><td><code>uploader</code> <em>(upload only)</em></td><td>function</td><td>same shape as the constructor option</td><td>the constructor's <code>uploader</code>, or the built-in one</td></tr>
+    <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th><th>Description</th></tr>
+    <tr>
+      <td><code>type</code></td><td>string</td><td><code>"base64"</code>, <code>"blob"</code>, <code>"canvas"</code></td><td><code>"base64"</code></td>
+      <td>What shape the result comes back as: a data URL string
+      (drop straight into an <code>&lt;img src&gt;</code>), a <code>Blob</code>
+      (for <code>FormData</code>/<code>upload()</code>), or a raw
+      <code>HTMLCanvasElement</code> (for further canvas manipulation).</td>
+    </tr>
+    <tr>
+      <td><code>format</code></td><td>string</td><td><code>"image/jpeg"</code>, <code>"image/png"</code>, <code>"image/webp"</code></td><td><code>"image/png"</code></td>
+      <td>Output image format. A <code>"circle"</code> frame exported as
+      <code>"image/jpeg"</code> warns and renders solid black outside the
+      circle — JPEG has no alpha channel. Use PNG/WebP for a transparent
+      circle crop.</td>
+    </tr>
+    <tr>
+      <td><code>quality</code></td><td>number</td><td><code>0</code>–<code>1</code> (jpeg/webp only)</td><td>browser default</td>
+      <td>Compression quality — lower means smaller file size, more visible
+      artifacts. Ignored for PNG (lossless).</td>
+    </tr>
+    <tr>
+      <td><code>width</code></td><td>number</td><td>any positive pixel size</td><td>frame width</td>
+      <td>Output pixel width. Set this higher than the frame's own width to
+      export at a larger resolution than what's shown on screen (e.g. export
+      a 800px avatar from a 200px on-screen frame).</td>
+    </tr>
+    <tr>
+      <td><code>height</code></td><td>number</td><td>any positive pixel size</td><td>frame height</td>
+      <td>Output pixel height. Same idea as <code>width</code>.</td>
+    </tr>
+    <tr>
+      <td><code>fieldName</code> <em>(upload only)</em></td><td>string</td><td>any</td><td><code>"file"</code></td>
+      <td>The <code>FormData</code> field name the blob is attached under —
+      match whatever your server endpoint expects (e.g. <code>"avatar"</code>).</td>
+    </tr>
+    <tr>
+      <td><code>fileName</code> <em>(upload only)</em></td><td>string</td><td>any</td><td><code>"crop.&lt;ext&gt;"</code>, from <code>format</code></td>
+      <td>The filename the server sees for the uploaded file.</td>
+    </tr>
+    <tr>
+      <td><code>extraFields</code> <em>(upload only)</em></td><td>object</td><td>any <code>Record&lt;string,string&gt;</code></td><td><code>{}</code></td>
+      <td>Extra plain-string fields to send alongside the file in the same
+      request — e.g. <code>{ userId: "42" }</code>.</td>
+    </tr>
+    <tr>
+      <td><code>fetchOptions</code> <em>(upload only)</em></td><td>object</td><td>any valid fetch init</td><td><code>{}</code></td>
+      <td>Merged into the underlying <code>fetch()</code> call — use it for
+      headers like <code>Authorization</code>, or <code>credentials:
+      "include"</code> for cookies. <code>method</code>/<code>body</code> are
+      always overridden by <code>upload()</code> itself.</td>
+    </tr>
+    <tr>
+      <td><code>uploader</code> <em>(upload only)</em></td><td>function</td><td>same shape as the constructor option</td><td>the constructor's <code>uploader</code>, or the built-in one</td>
+      <td>Overrides the upload implementation for this one call only.</td>
+    </tr>
   </table>
 
   <div class="note"><code>frame.shape: "circle"</code> + <code>format: "image/jpeg"</code>

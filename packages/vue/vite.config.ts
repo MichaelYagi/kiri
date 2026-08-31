@@ -23,7 +23,7 @@ export default defineConfig({
       formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["vue", "kiri"],
+      external: ["vue", "@michaelyagi/kiri"],
     },
   },
   test: {

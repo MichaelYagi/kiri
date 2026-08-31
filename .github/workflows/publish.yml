@@ -1,0 +1,40 @@
+name: Publish to npm
+
+# Triggers on any version tag push (e.g. v0.1.0-alpha.1, v0.1.0, v1.2.3).
+# Publishes whatever version is currently in packages/core/package.json —
+# bump that version and commit it BEFORE tagging, so the tag and the
+# published version match.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit -p packages/core/tsconfig.json
+
+      - name: Test
+        run: npm run test --workspace=@michaelyagi/kiri
+
+      - name: Build
+        run: npm run build --workspace=@michaelyagi/kiri
+
+      - name: Publish
+        run: npm publish --workspace=@michaelyagi/kiri --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

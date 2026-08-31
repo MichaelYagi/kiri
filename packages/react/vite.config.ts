@@ -25,7 +25,7 @@ export default defineConfig({
       formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime", "kiri"],
+      external: ["react", "react-dom", "react/jsx-runtime", "@michaelyagi/kiri"],
     },
   },
   test: {
