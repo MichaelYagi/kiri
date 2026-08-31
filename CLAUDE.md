@@ -18,15 +18,16 @@ messages.
 
 ## Status
 
-Released as `0.1.0-alpha.5` (all three packages, in lockstep). Core publishes
+Released as `0.1.0-alpha.6` (all three packages, in lockstep). Core publishes
 to npm as `@michaelyagi/kiri` automatically on `v*` git tags (see
 `design.md`'s "Publishing" section and `.github/workflows/publish.yml`);
 `kiri-react`/`kiri-vue` stay unpublished for now. See `CHANGELOG.md` for
 what's in this release. v1 (full
 parity) plus the extended feature set is implemented: filters
-(brightness/contrast/saturation/grayscale/sepia), `upload()`, `KiriBatch`
-(multi-image queue), a built-in zoom slider, and the React/Vue wrapper
-packages. See `design.md`'s "Extended features" section for each API. Treat
+(brightness/contrast/saturation/grayscale/sepia), `upload()`, batch cropping
+(a documented recipe, not a shipped class — see below), a built-in zoom
+slider, and the React/Vue wrapper packages. See `design.md`'s "Extended
+features" section for each API. Treat
 `design.md` as the source of truth for the intended API; update it alongside
 any design decisions that change, and add a `CHANGELOG.md` entry for the next
 version whenever a release-worthy change lands.
@@ -56,11 +57,12 @@ version whenever a release-worthy change lands.
   `package.json`, so a bare `.js` defaults to CommonJS (matching both UMD
   files' content) while `.mjs` is always ESM — avoids the dual-package hazard
   a plain `.js` UMD file would hit under `"type":"module"`. The UMD build's
-  Rollup output is a namespace object (`window.Kiri = { Kiri, KiriBatch }`,
-  since the entry has two named exports) — a small `generateBundle` plugin
-  hook in `vite.config.mts` (`flattenUmdGlobal`) appends a footer that
-  flattens it to two separate globals (`window.Kiri`, `window.KiriBatch`) for
-  `<script>`-tag consumers; it's a no-op for `require()`/bundler consumers.
+  Rollup output is a namespace object (`window.Kiri = { Kiri: ... }`, since
+  the entry re-exports `Kiri` as a named rather than default export) — a
+  small `generateBundle` plugin hook in `vite.config.mts`
+  (`flattenUmdGlobal`) appends a footer that flattens it to a plain
+  `window.Kiri` global for `<script>`-tag consumers; it's a no-op for
+  `require()`/bundler consumers.
   Because `build.minify` is whole-build in Vite, `kiri.js` comes from a
   second build pass (`KIRI_MINIFY=false`, chained in the `build` npm script)
   that switches `formats` to UMD-only, skips the `dts` plugin, and sets
@@ -163,6 +165,9 @@ surface too (`packages/react/src/KiriCropper.tsx`,
 
 No remaining deliberate non-goals — the original v1 non-goals list (upload,
 filters, batch, wrappers) has all been implemented, and core now publishes to
-npm automatically. Still explicitly out of scope unless asked: a `KiriBatch`
-gallery/thumbnail UI (it's a queue manager only), and publishing
+npm automatically. `KiriBatch` was a shipped class through `0.1.0-alpha.5`;
+it was removed in `0.1.0-alpha.6` in favor of a documented recipe (see
+`design.md`'s "Batch cropping" section) since it added no real logic beyond
+index/array bookkeeping a consumer can trivially own. Still explicitly out
+of scope unless asked: a batch-cropping gallery/thumbnail UI, and publishing
 `kiri-react`/`kiri-vue` to npm.

@@ -48,20 +48,12 @@
 
   <p class="pg-hint">The stage itself is keyboard-accessible once focused (tab to it, or click it): arrow keys pan via <code>setOffset()</code>, <code>+</code>/<code>-</code> zoom via <code>setZoom()</code>, and <code>0</code> calls <code>reset()</code>.</p>
 
-  <h2>KiriBatch</h2>
-  <p>Steps a single shared <code>Kiri</code> instance through a queue of
-  images. Full walkthrough: <a href="batch-cropping.html">Batch cropping</a>.</p>
-  <table>
-    <tr><th>Method</th><th>Description</th></tr>
-    <tr><td><code>new KiriBatch(container, options?, items?)</code></td><td>Same <code>options</code> as <code>Kiri</code>. <code>items</code>: an initial array of <code>{ source, loadOptions? }</code>.</td></tr>
-    <tr><td><code>cropper</code></td><td>Read-only property — the shared <code>Kiri</code> instance. Use its normal methods (drag/zoom/rotate/filters/etc.) to adjust the currently-loaded item.</td></tr>
-    <tr><td><code>add(item)</code></td><td>Appends <code>{ source, loadOptions? }</code> to the queue.</td></tr>
-    <tr><td><code>next()</code></td><td><code>Promise&lt;boolean&gt;</code> — loads the next queued item into <code>cropper</code>; <code>false</code> once the queue is exhausted (stays on the last item).</td></tr>
-    <tr><td><code>current()</code></td><td>The currently-loaded item's <code>{ source, loadOptions? }</code>, or <code>null</code> before the first <code>next()</code>.</td></tr>
-    <tr><td><code>capture(options?)</code></td><td><code>Promise</code> — exports the current crop and stores it, indexed by item order.</td></tr>
-    <tr><td><code>results()</code></td><td>All captures made so far, in item order.</td></tr>
-    <tr><td><code>destroy()</code></td><td>Tears down the shared <code>Kiri</code> instance.</td></tr>
-  </table>
+  <h2>Batch cropping</h2>
+  <p>Stepping one shared <code>Kiri</code> instance through a queue of images
+  isn't a separate class — it's a small recipe built on the methods above
+  (mainly <code>load()</code> and <code>export()</code>) plus a plain array
+  for the queue. Full walkthrough: <a href="batch-cropping.html">Batch
+  cropping</a>.</p>
 
   <div class="next-steps">Next: <a href="events.html">Events</a> — what fires and when.</div>
 </main>

@@ -25,7 +25,7 @@
 
 <main>
   <h1>Batch cropping</h1>
-  <p class="lead">One shared cropper, stepped through a queue of images.</p>
+  <p class="lead">One shared cropper, stepped through a queue of images — the <a href="../guides/batch-cropping.html">recipe</a>, not a separate class.</p>
 
   <p>The queue starts with two sample photos — pick your own files below to
   try a real batch.</p>
@@ -46,38 +46,54 @@
 
 <script src="../dist/kiri.min.js"></script>
 <script>
-  const batch = new KiriBatch(
-    document.getElementById("cropper"),
-    { frame: { shape: "rectangle", width: 220, height: 160 } },
-    [{ source: "../assets/cat.jpg" }, { source: "../assets/beach.jpg" }]
-  );
+  // The batch-cropping "recipe" from the guide: a plain array + index next
+  // to a single Kiri instance — no separate batch class needed.
+  const items = [{ source: "../assets/cat.jpg" }, { source: "../assets/beach.jpg" }];
+  let index = -1;
+  const captures = [];
+
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "rectangle", width: 220, height: 160 },
+  });
+
+  async function next() {
+    if (index + 1 >= items.length) return false;
+    index += 1;
+    await cropper.load(items[index].source);
+    return true;
+  }
+
+  async function previous() {
+    if (index <= 0) return false;
+    index -= 1;
+    await cropper.load(items[index].source);
+    return true;
+  }
 
   const statusEl = document.getElementById("status");
-  let position = 0; // KiriBatch doesn't expose the current index, so we track it ourselves
 
   document.getElementById("file-input").addEventListener("change", (e) => {
-    for (const file of e.target.files) batch.add({ source: file });
-    statusEl.textContent = `${batch.length} item(s) queued`;
+    for (const file of e.target.files) items.push({ source: file });
+    statusEl.textContent = `${items.length} item(s) queued`;
   });
 
   document.getElementById("next").addEventListener("click", async () => {
-    const hasNext = await batch.next();
-    if (hasNext) position += 1;
+    const hasNext = await next();
     statusEl.textContent = hasNext
-      ? `Editing item ${position} of ${batch.length}`
+      ? `Editing item ${index + 1} of ${items.length}`
       : "No more images in the queue";
   });
 
   document.getElementById("prev").addEventListener("click", async () => {
-    const hasPrev = await batch.previous();
-    if (hasPrev) position -= 1;
+    const hasPrev = await previous();
     statusEl.textContent = hasPrev
-      ? `Editing item ${position} of ${batch.length}`
+      ? `Editing item ${index + 1} of ${items.length}`
       : "Already at the first image";
   });
 
   document.getElementById("capture").addEventListener("click", async () => {
-    const dataUrl = await batch.capture({ type: "base64", format: "image/png" });
+    const dataUrl = await cropper.export({ type: "base64", format: "image/png" });
+    captures[index] = dataUrl;
     const output = document.getElementById("output");
     const img = document.createElement("img");
     img.src = dataUrl;
@@ -86,11 +102,8 @@
   });
 
   // kick things off
-  batch.next().then((hasNext) => {
-    if (hasNext) {
-      position += 1;
-      statusEl.textContent = `Editing item ${position} of ${batch.length}`;
-    }
+  next().then((hasNext) => {
+    if (hasNext) statusEl.textContent = `Editing item ${index + 1} of ${items.length}`;
   });
 </script>
 </body>

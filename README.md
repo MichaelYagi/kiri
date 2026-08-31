@@ -25,8 +25,8 @@ A dependency-free TypeScript library for interactive image cropping in the brows
   zoom, `0` resets
 - **Export** to base64, Blob, or Canvas — JPEG/PNG/WebP, custom output size
 - **Upload** — a built-in FormData/fetch helper, or plug in your own
-- **Batch cropping** (`KiriBatch`) — one shared cropper stepped through a
-  queue of images, with `next()`/`previous()`
+- **Batch cropping** — a documented recipe for stepping one shared cropper
+  through a queue of images, no separate class needed
 - **React and Vue wrappers** (`kiri-react`, `kiri-vue`) — thin components, no
   duplicated logic, reactive to prop changes after mount
 - Runtime-validated options (a typo'd setting warns and falls back rather
@@ -78,7 +78,7 @@ an interactive playground, and the full API reference.
 
 ## Status
 
-**`0.1.0-alpha.5`** — see [CHANGELOG.md](./CHANGELOG.md)
+**`0.1.0-alpha.6`** — see [CHANGELOG.md](./CHANGELOG.md)
 for what's in it. Core publishes to npm automatically on version tags via
 GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
 is expected to be mostly stable but may still change before a `0.1.0`

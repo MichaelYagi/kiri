@@ -111,7 +111,7 @@ cropper.destroy();
 | `getCropRegion()` | `CropRegion` | `{ x, y, width, height, rotation, flip }` — the crop selection in the *original, unrotated, unflipped* source image's own pixel coordinates, for a server to crop the full-resolution original itself. |
 | `upload(url, options?)` | `Promise<unknown>` | Exports as a blob, then uploads it (default: FormData/fetch; or a custom `uploader`). |
 | `on("change", cb)` / `off("change", cb)` | `void` | Subscribe/unsubscribe to state-change events (fires on drag/zoom/rotate/flip/filter changes). |
-| `destroy()` | `void` | Tears the instance down: removes all pointer/wheel event listeners (drag/zoom gestures), the resize-handle listener (if `resizableFrame`), and the zoom-slider listener (if `showZoomer`); clears the container's `innerHTML` (removing the stage/frame/image/zoomer markup entirely, leaving an empty container element); and clears all `"change"` listeners. Call this when you're done with an instance (e.g. unmounting) to avoid leaking listeners. `KiriBatch.destroy()` does the same for its underlying shared `Kiri` instance. |
+| `destroy()` | `void` | Tears the instance down: removes all pointer/wheel event listeners (drag/zoom gestures), the resize-handle listener (if `resizableFrame`), and the zoom-slider listener (if `showZoomer`); clears the container's `innerHTML` (removing the stage/frame/image/zoomer markup entirely, leaving an empty container element); and clears all `"change"` listeners. Call this when you're done with an instance (e.g. unmounting) to avoid leaking listeners. |
 
 ### Options reference
 
@@ -245,18 +245,33 @@ options)` regardless of backend.
 
 ### Batch cropping
 
-`KiriBatch` steps a single shared `Kiri` instance through a queue of images —
-one DOM/stage instance reused across images, not one instance per image, so
-every existing interaction (drag/zoom/rotate/flip/filters) needs no changes:
+Not a shipped class — a documented recipe (`docs/guides/batch-cropping.html`)
+built entirely on public `Kiri` methods plus a plain array for the queue.
+One DOM/stage instance is reused across images, not one instance per image,
+so every existing interaction (drag/zoom/rotate/flip/filters) needs no
+changes. This used to be a `KiriBatch` class shipped in core; it was removed
+in `0.1.0-alpha.6` once it became clear the class added no real logic beyond
+index/array bookkeeping a consumer can trivially own themselves:
 
 ```ts
-const batch = new KiriBatch(container, options, [{ source: fileA }, { source: fileB }]);
-while (await batch.next()) {
-  // batch.cropper is now showing batch.current().source — let the user adjust it
-  await batch.capture(); // export + store this item's crop
+const items = [{ source: fileA }, { source: fileB }];
+let index = -1;
+const captures = [];
+const cropper = new Kiri(container, options);
+
+async function next() {
+  if (index + 1 >= items.length) return false;
+  index += 1;
+  await cropper.load(items[index].source);
+  return true;
 }
-batch.results(); // all captures, in item order
-// batch.previous() mirrors next() — steps back one item, false at the first item
+// previous() mirrors next() — steps index back one, false at the first item
+
+while (await next()) {
+  // cropper is now showing items[index].source — let the user adjust it
+  captures[index] = await cropper.export(); // export + store this item's crop
+}
+captures; // all captures, in item order
 ```
 
 ### Framework wrappers
@@ -289,9 +304,8 @@ kiri/
 └── packages/
     ├── core/                # published as "@michaelyagi/kiri"
     │   ├── src/
-    │   │   ├── index.ts       # public entry: re-exports Kiri, KiriBatch, types
+    │   │   ├── index.ts       # public entry: re-exports Kiri, types
     │   │   ├── kiri.ts        # public Kiri class
-    │   │   ├── batch.ts       # KiriBatch
     │   │   ├── stage.ts       # stage/frame DOM + layout
     │   │   ├── gestures.ts     # drag/wheel/pinch handling + clamping math
     │   │   ├── exif.ts          # EXIF orientation parsing
@@ -321,9 +335,10 @@ kiri/
   plugin (render-function component, not `.vue` files).
   - Core's dist filenames are deliberately explicit rather than Vite's
     defaults: **`kiri.min.js`** (UMD/CJS, minified — `main`/`require`,
-    `<script>`-tag-ready, `new Kiri(...)`/`new KiriBatch(...)` as two flat
-    globals, flattened from Rollup's namespace-object UMD output by a small
-    build-time footer), **`kiri.js`** (the same UMD/CJS build, unminified,
+    `<script>`-tag-ready, `new Kiri(...)` as a flat global, flattened from
+    Rollup's namespace-object UMD output — `{ Kiri: KiriClass }`, since the
+    entry is a named rather than default export — by a small build-time
+    footer), **`kiri.js`** (the same UMD/CJS build, unminified,
     for devtools debugging), and **`kiri.mjs`** (ESM, for bundlers —
     `module`/`import`). The package has no top-level `"type": "module"` — a
     bare `.js` defaults to CommonJS (matching both UMD files' content),
@@ -373,8 +388,9 @@ internal names only) until that's revisited.
 ## Open questions / future work
 
 - Touch/pinch gesture precision on mobile — needs real-device testing.
-- `KiriBatch` currently has no built-in gallery/thumbnail UI — it's a queue
-  manager only; a consumer builds their own UI around `next()`/`current()`.
+- The batch-cropping recipe has no built-in gallery/thumbnail UI — it's
+  queue bookkeeping only; a consumer builds their own UI around it, same as
+  they'd build the queue array itself.
 - `@michaelyagi/kiri` (core) publishes to npm automatically on version tags —
   see the "Publishing" section below. `kiri-react`/`kiri-vue` stay unpublished
   for now, workspace-internal names only.

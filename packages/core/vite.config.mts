@@ -2,13 +2,12 @@ import { defineConfig, type Plugin } from "vite";
 import { resolve } from "node:path";
 import dts from "vite-plugin-dts";
 
-// The UMD bundle exports both `Kiri` and `KiriBatch` as named exports, so
-// Rollup's UMD wrapper sets `window.Kiri` to a namespace object
-// ({ Kiri, KiriBatch }) rather than the class itself. This flattens it after
-// the wrapper runs, so plain <script>-tag consumers get `Kiri` and
-// `KiriBatch` as two separate globals (`new Kiri(...)` works directly). It's
-// a no-op for require()/bundler consumers, who never hit the globalThis
-// branch of the UMD wrapper in the first place.
+// The UMD bundle exports `Kiri` as a named export (rather than a default
+// export), so Rollup's UMD wrapper sets `window.Kiri` to a namespace object
+// ({ Kiri: KiriClass }) rather than the class itself. This flattens it after
+// the wrapper runs, so plain <script>-tag consumers get `new Kiri(...)`
+// working directly. It's a no-op for require()/bundler consumers, who never
+// hit the globalThis branch of the UMD wrapper in the first place.
 function flattenUmdGlobal(): Plugin {
   return {
     name: "flatten-umd-global",
@@ -18,9 +17,7 @@ function flattenUmdGlobal(): Plugin {
         if (file.type === "chunk" && file.isEntry) {
           file.code += `\n(function(){
   if (typeof globalThis !== "undefined" && globalThis.Kiri && globalThis.Kiri.Kiri) {
-    var __KiriBatch = globalThis.Kiri.KiriBatch;
     globalThis.Kiri = globalThis.Kiri.Kiri;
-    globalThis.KiriBatch = __KiriBatch;
   }
 })();
 `;

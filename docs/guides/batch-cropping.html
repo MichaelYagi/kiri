@@ -24,56 +24,81 @@
 
 <main>
   <h1>Batch cropping</h1>
-  <p class="lead"><code>KiriBatch</code> steps one shared <code>Kiri</code> instance through a queue of images.</p>
+  <p class="lead">A recipe for stepping one shared <code>Kiri</code> instance through a queue of images — not a separate class, just plain <code>Kiri</code> plus a small amount of your own bookkeeping.</p>
 
   <p>One DOM/stage instance is reused across images — not one instance per
   image — so every interaction you already know (drag, zoom, rotate, flip,
-  filters) works exactly the same, with no separate API to learn.</p>
+  filters) works exactly the same, with no separate API to learn. The only
+  new pieces are the queue array, the current index, and where captured
+  results get stored — all things a plain array already does well, so there's
+  no dedicated class for it.</p>
 
-  <pre><code>import { KiriBatch } from "@michaelyagi/kiri";
+  <pre><code>import { Kiri } from "@michaelyagi/kiri";
 
-const batch = new KiriBatch(container, options, [
-  { source: fileA },
-  { source: fileB },
-]);
+const items = [];   // { source, loadOptions? }
+let index = -1;
+const captures = [];
 
-while (await batch.next()) {
-  // batch.cropper now shows batch.current().source — let the user adjust it
-  // (drag/zoom/rotate/whatever), then capture it:
-  await batch.capture();
+const cropper = new Kiri(container, options);
+
+async function next() {
+  if (index + 1 >= items.length) return false;
+  index += 1;
+  await cropper.load(items[index].source, items[index].loadOptions);
+  return true;
 }
 
-batch.results(); // all crops, in order
-batch.destroy();</code></pre>
+async function previous() {
+  if (index <= 0) return false;
+  index -= 1;
+  await cropper.load(items[index].source, items[index].loadOptions);
+  return true;
+}
+
+async function capture(exportOptions) {
+  const result = await cropper.export(exportOptions);
+  captures[index] = result;
+  return result;
+}</code></pre>
+
+  <pre><code>items.push({ source: fileA }, { source: fileB });
+
+while (await next()) {
+  // cropper now shows items[index].source — let the user adjust it
+  // (drag/zoom/rotate/whatever), then capture it:
+  await capture();
+}
+
+captures; // all crops, in order
+cropper.destroy();</code></pre>
 
   <h2>Adding items later</h2>
-  <p>You don't have to pass the whole queue up front — <code>add()</code> appends to it:</p>
-  <pre><code>const batch = new KiriBatch(container, options);
-fileInput.addEventListener("change", () => {
-  for (const file of fileInput.files) batch.add({ source: file });
+  <p>You don't have to build the whole queue up front — it's just an array, so push to it whenever:</p>
+  <pre><code>fileInput.addEventListener("change", () => {
+  for (const file of fileInput.files) items.push({ source: file });
 });</code></pre>
 
   <h2>A typical UI loop</h2>
   <pre><code>nextButton.addEventListener("click", async () => {
-  const hasNext = await batch.next();
+  const hasNext = await next();
   if (!hasNext) {
-    showResults(batch.results());
+    showResults(captures);
     return;
   }
-  statusEl.textContent = `Editing item ${batch.current().source.name}`;
+  statusEl.textContent = `Editing item ${items[index].source.name}`;
 });
 
-prevButton.addEventListener("click", () => batch.previous());
-captureButton.addEventListener("click", () => batch.capture());</code></pre>
-  <p><code>previous()</code> is the mirror image of <code>next()</code> — it
-  steps <code>cropper</code> back one item and returns <code>false</code>
-  (without moving) once you're already on the first item, so a "Back" button
-  can disable itself the same way a "Next" button does at the end of the
-  queue.</p>
+prevButton.addEventListener("click", () => previous());
+captureButton.addEventListener("click", () => capture());</code></pre>
+  <p><code>previous()</code> mirrors <code>next()</code> — it steps
+  <code>cropper</code> back one item and returns <code>false</code> (without
+  moving) once <code>index</code> is already <code>0</code>, so a "Back"
+  button can disable itself the same way a "Next" button does at the end of
+  the queue.</p>
 
-  <p>See the full method list on the <a href="methods.html">Methods</a> page,
-  and a working version on the <a href="../examples/batch-cropping.html">batch
-  cropping example</a>.</p>
+  <p>See a working version on the <a href="../examples/batch-cropping.html">batch
+  cropping example</a> — it's this exact recipe, copy-pasted into a real
+  page.</p>
 
   <div class="next-steps">Next: <a href="architecture.html">Architecture</a>.</div>
 </main>
