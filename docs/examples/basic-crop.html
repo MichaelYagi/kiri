@@ -27,6 +27,10 @@
   <h1>Basic crop</h1>
   <p class="lead">The minimal setup — load, drag/zoom/rotate/flip, export.</p>
 
+  <p><small>Click the cropper to focus it, then try arrow keys to pan,
+  <code>+</code>/<code>-</code> to zoom, and <code>0</code> to reset — it's
+  keyboard-accessible out of the box.</small></p>
+
   <input id="file-input" type="file" accept="image/*" />
   <div id="cropper"></div>
 
@@ -34,6 +38,7 @@
     <button id="rotate">Rotate 90°</button>
     <button id="flip-h">Flip horizontal</button>
     <button id="flip-v">Flip vertical</button>
+    <button id="reset">Reset</button>
     <button id="export">Export crop</button>
   </div>
 
@@ -55,6 +60,7 @@
   document.getElementById("rotate").addEventListener("click", () => cropper.rotate(90));
   document.getElementById("flip-h").addEventListener("click", () => cropper.flipHorizontal());
   document.getElementById("flip-v").addEventListener("click", () => cropper.flipVertical());
+  document.getElementById("reset").addEventListener("click", () => cropper.reset());
 
   document.getElementById("export").addEventListener("click", async () => {
     const dataUrl = await cropper.export({ type: "base64", format: "image/png" });

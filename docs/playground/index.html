@@ -102,6 +102,7 @@
         <button id="rotate" type="button">Rotate 90°</button>
         <button id="flip-h" type="button">Flip horizontal</button>
         <button id="flip-v" type="button">Flip vertical</button>
+        <button id="center" type="button">Center (setOffset)</button>
         <button id="reset" type="button">Reset</button>
       </div>
       <div class="controls">
@@ -212,6 +213,7 @@
   el("rotate").addEventListener("click", () => cropper && cropper.rotate(90));
   el("flip-h").addEventListener("click", () => cropper && cropper.flipHorizontal());
   el("flip-v").addEventListener("click", () => cropper && cropper.flipVertical());
+  el("center").addEventListener("click", () => cropper && cropper.setOffset({ x: 0, y: 0 }));
   el("reset").addEventListener("click", () => cropper && cropper.reset());
 
   el("export").addEventListener("click", async () => {

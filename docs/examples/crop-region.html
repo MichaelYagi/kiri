@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crop region — Kiri example</title>
+<link rel="stylesheet" href="../assets/site.css" />
+<link rel="stylesheet" href="../dist/kiri.min.css" />
+<style>
+  .cr-layout { display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start; margin-top: 1.5rem; }
+  .cr-original { position: relative; display: inline-block; line-height: 0; }
+  .cr-original img { display: block; width: 320px; height: auto; }
+  .cr-box {
+    position: absolute;
+    border: 2px solid #e63946;
+    background: rgba(230, 57, 70, 0.15);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+  <a class="brand" href="../index.html">Kiri</a>
+  <a href="../index.html">Overview</a>
+  <a href="../guides/getting-started.html">Getting started</a>
+  <a href="../guides/methods.html">Methods</a>
+  <a href="../guides/events.html">Events</a>
+  <a href="../guides/settings.html">Settings</a>
+  <a href="../guides/filters.html">Filters</a>
+  <a href="../guides/batch-cropping.html">Batch cropping</a>
+  <a href="../guides/architecture.html">Architecture</a>
+  <a href="../examples/index.html" class="active">Examples</a>
+  <a href="../playground/index.html">Playground</a>
+  <a href="../api/index.html">API reference</a>
+</div></nav>
+
+<main>
+  <h1>Crop region</h1>
+  <p class="lead"><code>getCropRegion()</code> — the crop mapped back onto the original image's own pixels, for server-side cropping.</p>
+
+  <p><code>export()</code> re-encodes the crop in the browser and gives you
+  an image to upload. <code>getCropRegion()</code> is the alternative: it
+  returns <code>{ x, y, width, height, rotation, flip }</code> in the
+  <em>original, unrotated, unflipped</em> source image's own pixel
+  coordinates, so you can upload the original file as-is and have your
+  server do the actual cropping — no client-side re-encoding, full original
+  resolution preserved. The server reproduces the transform by flipping,
+  then rotating, then cropping to the returned rectangle.</p>
+
+  <p>Drag/zoom/rotate the cropper below, then click the button — the red box
+  on the right shows exactly the region <code>getCropRegion()</code>
+  returns, drawn directly on the unmodified original photo.</p>
+
+  <div class="cr-layout">
+    <div>
+      <div id="cropper"></div>
+      <div class="controls">
+        <button id="get-region" type="button">Get crop region</button>
+      </div>
+      <pre id="region-dump"></pre>
+    </div>
+
+    <div>
+      <p><small>Original image, unrotated and unflipped, with the returned region overlaid:</small></p>
+      <div class="cr-original">
+        <img id="original" src="../assets/cat.jpg" alt="Original, uncropped photo" />
+        <div class="cr-box" id="box" hidden></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../dist/kiri.min.js"></script>
+<script>
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "rectangle", width: 200, height: 150 },
+    rotatable: true,
+  });
+  cropper.load("../assets/cat.jpg");
+
+  const originalImg = document.getElementById("original");
+  const box = document.getElementById("box");
+
+  document.getElementById("get-region").addEventListener("click", () => {
+    const region = cropper.getCropRegion();
+    document.getElementById("region-dump").textContent = JSON.stringify(region, null, 2);
+
+    // Scale the region (in the original image's own pixel coordinates)
+    // down to the displayed <img>'s on-screen size.
+    const scale = originalImg.clientWidth / originalImg.naturalWidth;
+    box.style.left = `${region.x * scale}px`;
+    box.style.top = `${region.y * scale}px`;
+    box.style.width = `${region.width * scale}px`;
+    box.style.height = `${region.height * scale}px`;
+    box.hidden = false;
+  });
+</script>
+</body>
+</html>
