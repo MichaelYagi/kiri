@@ -43,6 +43,25 @@ npm install @michaelyagi/kiri
 
 [npmjs.com/package/@michaelyagi/kiri](https://www.npmjs.com/package/@michaelyagi/kiri)
 
+## Zero-config quickstart
+
+```html
+<link rel="stylesheet" href="node_modules/@michaelyagi/kiri/dist/kiri.min.css" />
+<script src="node_modules/@michaelyagi/kiri/dist/kiri.min.js"></script>
+<div id="cropper"></div>
+<script>
+  const cropper = new Kiri(document.getElementById("cropper"), {
+    frame: { shape: "circle", width: 200, height: 200 },
+  });
+  await cropper.load("photo.jpg");
+  const blob = await cropper.export({ type: "blob" });
+</script>
+```
+
+No CSS sizing needed on the container — the stage auto-sizes itself to the
+frame's dimensions. See [Getting started](https://michaelyagi.github.io/kiri/guides/getting-started.html)
+for npm/ESM installation too.
+
 ## Documentation
 
 **[michaelyagi.github.io/kiri](https://michaelyagi.github.io/kiri)** —
