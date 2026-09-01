@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.7
+
+- Added `packages/core/README.md` — the published `@michaelyagi/kiri`
+  package had no README at all, since `packages/core` (the published
+  directory) never had its own copy; the monorepo root's `README.md` lives
+  outside it and isn't included in the npm tarball. The npmjs.com package
+  page now shows the same README as the GitHub repo.
+
 ## 0.1.0-alpha.6
 
 - **Breaking:** Removed the `KiriBatch` class. It was a thin wrapper around
