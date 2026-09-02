@@ -1,4 +1,4 @@
-export type FrameShape = "rectangle" | "circle";
+export type FrameShape = "rectangle" | "circle" | "rounded-rectangle";
 export type ZoomerPosition = "top" | "bottom" | "left" | "right";
 
 export interface FrameSize {
@@ -33,12 +33,17 @@ export type Uploader = (
 
 export interface KiriOptions {
   frame?: {
-    /** Default `"rectangle"`. `"circle"` is a real clip on export, not just a visual overlay. */
+    /**
+     * Default `"rectangle"`. `"circle"` and `"rounded-rectangle"` are real
+     * clips on export, not just a visual overlay.
+     */
     shape?: FrameShape;
     /** Pixels. Default `200`. */
     width?: number;
     /** Pixels. Default `200`. */
     height?: number;
+    /** Corner radius in pixels. Only used when `shape` is `"rounded-rectangle"`. Default `20`. */
+    cornerRadius?: number;
   };
   /** Default `1`. */
   minZoom?: number;

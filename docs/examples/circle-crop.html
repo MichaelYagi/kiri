@@ -28,8 +28,14 @@
 </div></nav>
 
 <main>
-  <h1>Circle crop</h1>
-  <p class="lead">A circular frame — exported with real transparent corners, not just a visual overlay.</p>
+  <h1>Circle &amp; rounded-rectangle crop</h1>
+  <p class="lead">Non-rectangle frames — exported with real transparent corners, not just a visual overlay.</p>
+
+  <div class="controls">
+    <label><input type="radio" name="shape" value="circle" checked /> circle</label>
+    <label><input type="radio" name="shape" value="rounded-rectangle" /> rounded-rectangle</label>
+    <label id="radius-label">cornerRadius <input id="radius" type="number" min="0" value="40" style="width: 4rem" /></label>
+  </div>
 
   <div id="cropper"></div>
 
@@ -39,17 +45,34 @@
 
   <p>The checkerboard behind the exported image below is the page's own
   background pattern showing through — proof the PNG actually has an alpha
-  channel outside the circle, not just a white/black square.</p>
+  channel outside the shape, not just a white/black square.</p>
 
   <div id="output"></div>
 </main>
 
 <script src="../dist/kiri.min.js"></script>
 <script>
-  const cropper = new Kiri(document.getElementById("cropper"), {
-    frame: { shape: "circle", width: 200, height: 200 },
-  });
-  cropper.load("../assets/cat.jpg");
+  let cropper;
+
+  function build() {
+    if (cropper) cropper.destroy();
+    const shape = document.querySelector('input[name="shape"]:checked').value;
+    document.getElementById("radius-label").style.display = shape === "rounded-rectangle" ? "" : "none";
+    cropper = new Kiri(document.getElementById("cropper"), {
+      frame: {
+        shape,
+        width: 200,
+        height: 200,
+        cornerRadius: Number(document.getElementById("radius").value),
+      },
+    });
+    cropper.load("../assets/cat.jpg");
+  }
+
+  for (const el of document.querySelectorAll('input[name="shape"], #radius')) {
+    el.addEventListener("change", build);
+  }
+  build();
 
   document.getElementById("export").addEventListener("click", async () => {
     const dataUrl = await cropper.export({ type: "base64", format: "image/png" });

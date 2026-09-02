@@ -23,6 +23,28 @@ describe("Kiri", () => {
     expect(frame.style.height).toBe("120px");
   });
 
+  it("applies a rounded-rectangle frame's class and corner radius (default 20px)", () => {
+    new Kiri(container, { frame: { shape: "rounded-rectangle", width: 150, height: 120 } });
+
+    const frame = container.querySelector(".kiri-frame") as HTMLElement;
+    expect(frame.classList.contains("kiri-frame--rounded-rectangle")).toBe(true);
+    expect(frame.style.borderRadius).toBe("20px");
+  });
+
+  it("applies a custom cornerRadius for a rounded-rectangle frame", () => {
+    new Kiri(container, {
+      frame: { shape: "rounded-rectangle", width: 150, height: 120, cornerRadius: 8 },
+    });
+
+    const frame = container.querySelector(".kiri-frame") as HTMLElement;
+    expect(frame.style.borderRadius).toBe("8px");
+  });
+
+  it("doesn't set a border-radius for rectangle/circle frames", () => {
+    new Kiri(container, { frame: { shape: "rectangle" } });
+    expect((container.querySelector(".kiri-frame") as HTMLElement).style.borderRadius).toBe("");
+  });
+
   it("auto-sizes the stage to the frame dimensions plus padding by default", () => {
     new Kiri(container, { frame: { width: 150, height: 120 } });
 

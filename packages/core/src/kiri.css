@@ -34,6 +34,9 @@
 .kiri-frame--circle {
   border-radius: 50%;
 }
+/* .kiri-frame--rounded-rectangle's border-radius is a per-instance pixel
+   value (frame.cornerRadius), so it's set inline by stage.ts instead of
+   here — this class exists as a CSS hook for consumers, not styling. */
 .kiri-frame-handle {
   position: absolute;
   width: 10px;

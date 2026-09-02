@@ -115,7 +115,8 @@ export function renderCropToCanvas(
   frame: Size,
   outputWidth: number,
   outputHeight: number,
-  frameShape: FrameShape
+  frameShape: FrameShape,
+  cornerRadius: number
 ): HTMLCanvasElement {
   const natural: Size = { width: img.naturalWidth, height: img.naturalHeight };
   const scale = computeCoverScale(natural, frame, state.rotation) * state.zoom;
@@ -150,12 +151,12 @@ export function renderCropToCanvas(
   const octx = outCanvas.getContext("2d");
   if (!octx) throw new Error("Kiri: unable to get 2D canvas context");
 
-  // The circle frame is otherwise just a visual overlay (stage.ts's
-  // .kiri-frame--circle border) — without this, the export would always be
-  // a plain rectangle regardless of frame.shape. Clipping to an ellipse
-  // inscribed in the output canvas matches what's visible on screen even
-  // when a custom output width/height changes its aspect ratio.
+  // A non-rectangle frame is otherwise just a visual overlay (stage.ts's
+  // .kiri-frame--circle/--rounded-rectangle) — without this, the export
+  // would always be a plain rectangle regardless of frame.shape.
   if (frameShape === "circle") {
+    // Ellipse inscribed in the output canvas matches what's visible on
+    // screen even when a custom output width/height changes its aspect ratio.
     octx.save();
     octx.beginPath();
     octx.ellipse(
@@ -167,6 +168,16 @@ export function renderCropToCanvas(
       0,
       Math.PI * 2
     );
+    octx.clip();
+  } else if (frameShape === "rounded-rectangle") {
+    // cornerRadius is a fixed pixel value tied to the on-screen frame size;
+    // scale it by how much bigger/smaller the output is than the frame so a
+    // custom output width/height still looks proportionally the same.
+    const scale = outputWidth / frame.width;
+    const radius = clampNum(cornerRadius * scale, 0, Math.min(outputWidth, outputHeight) / 2);
+    octx.save();
+    octx.beginPath();
+    octx.roundRect(0, 0, outputWidth, outputHeight, radius);
     octx.clip();
   }
 
@@ -182,7 +193,7 @@ export function renderCropToCanvas(
     outputHeight
   );
 
-  if (frameShape === "circle") octx.restore();
+  if (frameShape === "circle" || frameShape === "rounded-rectangle") octx.restore();
 
   return outCanvas;
 }
@@ -192,6 +203,7 @@ export async function exportCrop(
   state: KiriState,
   frame: Size,
   frameShape: FrameShape,
+  cornerRadius: number,
   options: ExportOptions
 ): Promise<ExportResult> {
   const type = resolveEnumOption(options.type, VALID_EXPORT_TYPES, "base64", "export type");
@@ -200,15 +212,15 @@ export async function exportCrop(
   const width = options.width ?? frame.width;
   const height = options.height ?? frame.height;
 
-  if (frameShape === "circle" && format === "image/jpeg") {
+  if ((frameShape === "circle" || frameShape === "rounded-rectangle") && format === "image/jpeg") {
     console.warn(
-      "Kiri: exporting a circle-shaped frame as image/jpeg — JPEG has no " +
-        "alpha channel, so the area outside the circle will render as solid " +
-        "black instead of transparent. Use image/png or image/webp instead."
+      `Kiri: exporting a ${frameShape}-shaped frame as image/jpeg — JPEG has ` +
+        "no alpha channel, so the area outside the shape will render as " +
+        "solid black instead of transparent. Use image/png or image/webp instead."
     );
   }
 
-  const canvas = renderCropToCanvas(img, state, frame, width, height, frameShape);
+  const canvas = renderCropToCanvas(img, state, frame, width, height, frameShape, cornerRadius);
 
   if (type === "canvas") return canvas;
   if (type === "base64") return canvas.toDataURL(format, quality);

@@ -41,7 +41,8 @@ import { resolveEnumOption } from "./validate";
 
 const DEFAULT_FRAME_SIZE = 200;
 const MIN_FRAME_SIZE = 20;
-const VALID_FRAME_SHAPES: FrameShape[] = ["rectangle", "circle"];
+const DEFAULT_CORNER_RADIUS = 20;
+const VALID_FRAME_SHAPES: FrameShape[] = ["rectangle", "circle", "rounded-rectangle"];
 const VALID_ZOOMER_POSITIONS: ZoomerPosition[] = ["top", "bottom", "left", "right"];
 
 function resolveMouseWheelZoom(value: KiriOptions["mouseWheelZoom"]): boolean | "ctrl" {
@@ -55,7 +56,7 @@ function resolveMouseWheelZoom(value: KiriOptions["mouseWheelZoom"]): boolean | 
 }
 
 interface ResolvedOptions {
-  frame: { shape: FrameShape; width: number; height: number };
+  frame: { shape: FrameShape; width: number; height: number; cornerRadius: number };
   minZoom: number;
   maxZoom: number;
   rotatable: boolean;
@@ -120,6 +121,7 @@ export class Kiri {
         ),
         width: options.frame?.width ?? DEFAULT_FRAME_SIZE,
         height: options.frame?.height ?? DEFAULT_FRAME_SIZE,
+        cornerRadius: options.frame?.cornerRadius ?? DEFAULT_CORNER_RADIUS,
       },
       minZoom: options.minZoom ?? 1,
       maxZoom: options.maxZoom ?? 4,
@@ -146,6 +148,7 @@ export class Kiri {
       this.opts.frame.shape,
       this.opts.frame.width,
       this.opts.frame.height,
+      this.opts.frame.cornerRadius,
       {
         show: this.opts.showZoomer,
         position: this.opts.zoomerPosition,
@@ -358,9 +361,10 @@ export class Kiri {
   }
 
   /**
-   * Renders the current crop. A circle frame is a real clip in the output
-   * (transparent corners on PNG/WebP); a circle exported as JPEG warns and
-   * renders solid black corners instead, since JPEG has no alpha channel.
+   * Renders the current crop. A circle or rounded-rectangle frame is a real
+   * clip in the output (transparent corners on PNG/WebP); either shape
+   * exported as JPEG warns and renders solid black corners instead, since
+   * JPEG has no alpha channel.
    * @returns A data URL string (`type: "base64"`, the default), a `Blob`, or an `HTMLCanvasElement`.
    */
   async export(options: ExportOptions = {}): Promise<ExportResult> {
@@ -369,6 +373,7 @@ export class Kiri {
       this.state,
       this.getFrameSize(),
       this.opts.frame.shape,
+      this.opts.frame.cornerRadius,
       options
     );
   }

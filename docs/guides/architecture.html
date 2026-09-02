@@ -33,14 +33,14 @@
     <code>autoSizeStage: false</code> reverts to filling its container via
     CSS (100% width/height) instead.</li>
     <li><strong>Frame</strong> — the fixed selection window inside the
-    stage; the region that gets exported. <code>"rectangle"</code> or
-    <code>"circle"</code>.</li>
+    stage; the region that gets exported. <code>"rectangle"</code>,
+    <code>"circle"</code>, or <code>"rounded-rectangle"</code>.</li>
     <li><strong>Image layer</strong> — the source image, freely draggable
     and zoomable behind the frame.</li>
   </ul>
 
-  <h2>Circle frames are a real clip, not just an overlay</h2>
-  <p>On screen, the circle frame is a CSS <code>border-radius: 50%</code>
+  <h2>Circle and rounded-rectangle frames are real clips, not just an overlay</h2>
+  <p>On screen, a circle frame is a CSS <code>border-radius: 50%</code>
   border plus a dimming overlay outside it — but <code>export()</code> and
   <code>upload()</code> actually clip the rendered output to match, using a
   canvas <code>ellipse()</code> clip path before the final draw. PNG/WebP
@@ -51,6 +51,14 @@
   non-square box) — the export follows exactly, inscribed in the same
   width/height. Use equal <code>width</code>/<code>height</code> for a true
   circle.</p>
+  <p>A rounded-rectangle frame works the same way — on screen it's a CSS
+  <code>border-radius: &lt;cornerRadius&gt;px</code> (a per-instance pixel
+  value, so it's set as an inline style rather than a fixed CSS rule), and
+  export clips with a canvas <code>roundRect()</code> path using the same
+  radius. If the output size passed to <code>export()</code> differs from
+  <code>frame.width</code>/<code>height</code> (a custom <code>width</code>/
+  <code>height</code> option), the radius is scaled proportionally so a
+  larger or smaller export still looks the same shape.</p>
 
   <h2>Zoom clamping</h2>
   <p>Zoom is always clamped so the image can never be smaller than the

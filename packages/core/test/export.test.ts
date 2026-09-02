@@ -89,7 +89,7 @@ describe("exportCrop option validation", () => {
     // jsdom has no real 2D canvas context, so this rejects downstream —
     // the validation warning fires before that point, which is what's
     // under test here.
-    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", {
+    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", 0, {
       type: "svg" as never,
     }).catch(() => {});
 
@@ -101,7 +101,7 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", {
+    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", 0, {
       format: "image/gif" as never,
     }).catch(() => {});
 
@@ -113,7 +113,7 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "circle", {
+    await exportCrop(img, state, { width: 10, height: 10 }, "circle", 0, {
       format: "image/jpeg",
     }).catch(() => {});
 
@@ -125,11 +125,25 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "circle", {
+    await exportCrop(img, state, { width: 10, height: 10 }, "circle", 0, {
       format: "image/png",
     }).catch(() => {});
 
     expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it("warns when exporting a rounded-rectangle frame as JPEG (no alpha channel -> black corners)", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const img = document.createElement("img");
+
+    await exportCrop(img, state, { width: 10, height: 10 }, "rounded-rectangle", 20, {
+      format: "image/jpeg",
+    }).catch(() => {});
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/rounded-rectangle-shaped frame as image\/jpeg/)
+    );
     warnSpy.mockRestore();
   });
 });

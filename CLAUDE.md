@@ -18,7 +18,7 @@ messages.
 
 ## Status
 
-Released as `0.1.0-alpha.7` (all three packages, in lockstep). Core publishes
+Released as `0.1.0-alpha.8` (all three packages, in lockstep). Core publishes
 to npm as `@michaelyagi/kiri` automatically on `v*` git tags (see
 `design.md`'s "Publishing" section and `.github/workflows/publish.yml`);
 `kiri-react`/`kiri-vue` stay unpublished for now. See `CHANGELOG.md` for
@@ -112,7 +112,10 @@ version whenever a release-worthy change lands.
   class with no matching CSS rule. `resolveEnumOption()` in `validate.ts` is
   the single shared implementation — reach for it (not an ad-hoc `??`) for
   any new string-enum option. `frame.shape`'s values are `"rectangle"` /
-  `"circle"` — spelled out in full, no abbreviations in the public API.
+  `"circle"` / `"rounded-rectangle"` — spelled out in full, no abbreviations
+  in the public API; multi-word values are kebab-case (`"rounded-rectangle"`,
+  not `"roundedRectangle"`), matching CSS-value-style conventions used
+  elsewhere in the option surface.
 - Circle export: `frame.shape: "circle"` used to be purely a `stage.ts`
   visual overlay (`.kiri-frame--circle`'s `border-radius: 50%` on the frame
   border/dimming) — `export()`/`upload()` always produced a plain rectangle
@@ -127,6 +130,18 @@ version whenever a release-worthy change lands.
   Verified in a real browser via pixel-level `getImageData` (corner alpha 0,
   center alpha 255) — this can't be tested in jsdom, which has no real 2D
   canvas context.
+- Rounded-rectangle frame (`frame.shape: "rounded-rectangle"`,
+  `frame.cornerRadius`, default `20`px): built the same way circle's export
+  clip works, so it didn't repeat circle's original bug — `frame.shape` and
+  `frame.cornerRadius` are threaded through `exportCrop()`/
+  `renderCropToCanvas()` from the start, clipping via `ctx.roundRect()` +
+  `ctx.clip()`. The radius is a per-instance pixel value (unlike circle's
+  fixed 50%), so `stage.ts` sets it as an inline `border-radius` on the frame
+  element rather than a static CSS rule; the export clip scales it by
+  `outputWidth / frame.width` so a custom `export()` output size still looks
+  proportionally the same. Same JPEG-alpha `console.warn` as circle. Verified
+  in a real browser via pixel-level `getImageData`, including the scaled-radius
+  case (custom output size).
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

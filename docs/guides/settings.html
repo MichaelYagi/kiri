@@ -35,12 +35,18 @@
 
   <h2 id="constructor">Constructor options</h2>
   <pre><code>new Kiri(container, {
-  frame: { shape: "circle", width: 200, height: 200 },
+  frame: {
+    shape: "circle",          // "rectangle" | "circle" | "rounded-rectangle"
+    width: 200,
+    height: 200,
+    cornerRadius: 20,          // only used when shape is "rounded-rectangle"
+  },
   minZoom: 1,
   maxZoom: 4,
   rotatable: true,
   flippable: true,
   resizableFrame: false,
+  lockAspectRatio: false,      // only matters when resizableFrame is true
   mouseWheelZoom: true,       // or "ctrl" to require Ctrl+wheel
   useExifOrientation: true,
   autoSizeStage: true,
@@ -54,9 +60,10 @@
     <tr><th>Option</th><th>Type</th><th>Valid values</th><th>Default</th><th>Description</th></tr>
     <tr>
       <td><code>frame.shape</code></td><td>string</td>
-      <td><code>"rectangle"</code>, <code>"circle"</code></td><td><code>"rectangle"</code></td>
-      <td>The shape of the crop selection. <code>"circle"</code> is a real clip on
-      export too (transparent corners on PNG/WebP) — see
+      <td><code>"rectangle"</code>, <code>"circle"</code>, <code>"rounded-rectangle"</code></td><td><code>"rectangle"</code></td>
+      <td>The shape of the crop selection. <code>"circle"</code> and
+      <code>"rounded-rectangle"</code> are real clips on export too
+      (transparent corners on PNG/WebP), not just a visual overlay — see
       <a href="architecture.html">Architecture</a>.</td>
     </tr>
     <tr>
@@ -68,6 +75,14 @@
       <td><code>frame.height</code></td><td>number</td><td>any positive pixel size</td><td><code>200</code></td>
       <td>Height of the crop selection, in pixels. Also the default output
       height for <code>export()</code>.</td>
+    </tr>
+    <tr>
+      <td><code>frame.cornerRadius</code></td><td>number</td><td>any non-negative pixel size</td><td><code>20</code></td>
+      <td>Only matters when <code>frame.shape</code> is
+      <code>"rounded-rectangle"</code>. The corner radius, in pixels, of both
+      the on-screen frame and the export clip. If the output size passed to
+      <code>export()</code> differs from <code>frame.width</code>/<code>height</code>,
+      the radius scales proportionally so it still looks the same.</td>
     </tr>
     <tr>
       <td><code>minZoom</code></td><td>number</td><td>any positive number ≤ <code>maxZoom</code></td><td><code>1</code></td>
@@ -220,10 +235,11 @@
     </tr>
     <tr>
       <td><code>format</code></td><td>string</td><td><code>"image/jpeg"</code>, <code>"image/png"</code>, <code>"image/webp"</code></td><td><code>"image/png"</code></td>
-      <td>Output image format. A <code>"circle"</code> frame exported as
+      <td>Output image format. A <code>"circle"</code> or
+      <code>"rounded-rectangle"</code> frame exported as
       <code>"image/jpeg"</code> warns and renders solid black outside the
-      circle — JPEG has no alpha channel. Use PNG/WebP for a transparent
-      circle crop.</td>
+      shape — JPEG has no alpha channel. Use PNG/WebP for a transparent
+      crop.</td>
     </tr>
     <tr>
       <td><code>quality</code></td><td>number</td><td><code>0</code>–<code>1</code> (jpeg/webp only)</td><td>browser default</td>
@@ -267,11 +283,12 @@
     </tr>
   </table>
 
-  <div class="note"><code>frame.shape: "circle"</code> + <code>format: "image/jpeg"</code>
+  <div class="note"><code>frame.shape: "circle"</code> or
+  <code>"rounded-rectangle"</code> + <code>format: "image/jpeg"</code>
   logs a <code>console.warn</code> — JPEG has no alpha channel, so the area
-  outside the circle renders solid black instead of transparent. Use
-  <code>"image/png"</code> or <code>"image/webp"</code> for a circle crop
-  with a transparent background.</div>
+  outside the shape renders solid black instead of transparent. Use
+  <code>"image/png"</code> or <code>"image/webp"</code> for a crop with a
+  transparent background.</div>
 
   <div class="next-steps">Next: <a href="filters.html">Filters</a>.</div>
 </main>

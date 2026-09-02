@@ -22,6 +22,7 @@ export function createStage(
   frameShape: FrameShape,
   frameWidth: number,
   frameHeight: number,
+  cornerRadius: number,
   zoomer: ZoomerConfig
 ): StageElements {
   container.innerHTML = "";
@@ -47,8 +48,17 @@ export function createStage(
 
   const frameEl = document.createElement("div");
   frameEl.className =
-    frameShape === "circle" ? "kiri-frame kiri-frame--circle" : "kiri-frame";
+    frameShape === "circle"
+      ? "kiri-frame kiri-frame--circle"
+      : frameShape === "rounded-rectangle"
+        ? "kiri-frame kiri-frame--rounded-rectangle"
+        : "kiri-frame";
   setFrameSize(frameEl, frameWidth, frameHeight);
+  // Radius is a per-instance pixel value (unlike circle's fixed 50%), so it
+  // can't be a static CSS rule — set inline instead.
+  if (frameShape === "rounded-rectangle") {
+    frameEl.style.borderRadius = `${cornerRadius}px`;
+  }
 
   stageEl.appendChild(imageLayerEl);
   stageEl.appendChild(frameEl);

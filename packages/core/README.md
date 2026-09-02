@@ -9,8 +9,9 @@ A dependency-free TypeScript library for interactive image cropping in the brows
 - **Drag, zoom, rotate, flip** — wheel/trackpad pinch zoom, an optional
   built-in zoom slider (`showZoomer`, placeable on any of the four sides),
   90° rotation, independent horizontal/vertical flip
-- **Rectangle or circle frame** — circle is a real clip on export (transparent
-  corners on PNG/WebP), not just a visual overlay
+- **Rectangle, circle, or rounded-rectangle frame** — circle/rounded-rectangle
+  are real clips on export (transparent corners on PNG/WebP), not just a
+  visual overlay
 - **Zero-CSS sizing** — the stage auto-sizes itself to the frame's dimensions
 - **Filters** — brightness/contrast/saturation/grayscale/sepia, applied
   identically to the live preview and the export
@@ -78,7 +79,7 @@ an interactive playground, and the full API reference.
 
 ## Status
 
-**`0.1.0-alpha.7`** — see [CHANGELOG.md](./CHANGELOG.md)
+**`0.1.0-alpha.8`** — see [CHANGELOG.md](./CHANGELOG.md)
 for what's in it. Core publishes to npm automatically on version tags via
 GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
 is expected to be mostly stable but may still change before a `0.1.0`

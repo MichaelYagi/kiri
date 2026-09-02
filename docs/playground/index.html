@@ -45,10 +45,16 @@
       <fieldset>
         <legend>Frame</legend>
         <div class="pg-row"><label for="shape">Shape</label>
-          <select id="shape"><option value="rectangle">rectangle</option><option value="circle">circle</option></select>
+          <select id="shape">
+            <option value="rectangle">rectangle</option>
+            <option value="circle">circle</option>
+            <option value="rounded-rectangle">rounded-rectangle</option>
+          </select>
         </div>
         <div class="pg-row"><label for="frameWidth">Width</label><input id="frameWidth" type="number" min="20" value="200" /></div>
         <div class="pg-row"><label for="frameHeight">Height</label><input id="frameHeight" type="number" min="20" value="200" /></div>
+        <div class="pg-row"><label for="cornerRadius">cornerRadius</label><input id="cornerRadius" type="number" min="0" value="20" /></div>
+        <p class="pg-hint">Only matters when Shape is rounded-rectangle.</p>
         <div class="pg-row"><label for="resizableFrame">Resizable</label><input id="resizableFrame" type="checkbox" /></div>
         <div class="pg-row"><label for="lockAspectRatio">lockAspectRatio</label><input id="lockAspectRatio" type="checkbox" /></div>
         <p class="pg-hint">Only matters while Resizable is on — dragging a
@@ -122,7 +128,7 @@
 <script src="../dist/kiri.min.js"></script>
 <script>
   const constructorIds = [
-    "shape", "frameWidth", "frameHeight", "resizableFrame", "lockAspectRatio",
+    "shape", "frameWidth", "frameHeight", "cornerRadius", "resizableFrame", "lockAspectRatio",
     "minZoom", "maxZoom", "mouseWheelZoom", "showZoomer", "zoomerPosition",
     "rotatable", "flippable", "useExifOrientation", "autoSizeStage",
   ];
@@ -144,6 +150,7 @@
         shape: el("shape").value,
         width: Number(el("frameWidth").value),
         height: Number(el("frameHeight").value),
+        cornerRadius: Number(el("cornerRadius").value),
       },
       minZoom: Number(el("minZoom").value),
       maxZoom: Number(el("maxZoom").value),

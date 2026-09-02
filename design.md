@@ -30,14 +30,19 @@ library — no code, naming, or documentation from any other project is reused.
   container's own CSS instead (100% width/height), for embedding in a
   layout where the consumer wants to control the stage's size directly.
 - **Frame** — the fixed selection window inside the stage (the region that gets
-  exported). Shape: `"rectangle"` or `"circle"`. `"circle"` isn't just a
-  visual overlay in the browser — `export()`/`upload()` actually clip the
-  output to match (transparent corners on PNG/WebP; JPEG has no alpha
-  channel, so circle + JPEG warns and renders solid black corners instead).
+  exported). Shape: `"rectangle"`, `"circle"`, or `"rounded-rectangle"`.
+  `"circle"`/`"rounded-rectangle"` aren't just a visual overlay in the
+  browser — `export()`/`upload()` actually clip the output to match
+  (transparent corners on PNG/WebP; JPEG has no alpha channel, so either
+  shape + JPEG warns and renders solid black corners instead).
   If `frame.width !== frame.height`, `"circle"` renders as an ellipse
   (matching `border-radius: 50%` on a non-square box) rather than a true
   circle, and the export follows exactly — inscribed in the same
   width/height. Use equal `width`/`height` for a true circle.
+  `"rounded-rectangle"`'s corner radius (`frame.cornerRadius`, default `20`
+  pixels) is a per-instance pixel value, so it's applied as an inline style
+  rather than a fixed CSS rule; the export's canvas `roundRect()` clip scales
+  the radius proportionally if the output size differs from the frame's.
 - **Image layer** — the source image, freely draggable and zoomable behind the frame.
 
 (These names replace the original library's "boundary"/"viewport" terminology,
@@ -119,9 +124,10 @@ Every constructor option, its type, valid values, and default.
 
 | Option | Type | Valid values | Default |
 |---|---|---|---|
-| `frame.shape` | string | `"rectangle"`, `"circle"` | `"rectangle"` |
+| `frame.shape` | string | `"rectangle"`, `"circle"`, `"rounded-rectangle"` | `"rectangle"` |
 | `frame.width` | number | any positive pixel size | `200` |
 | `frame.height` | number | any positive pixel size | `200` |
+| `frame.cornerRadius` | number | any non-negative pixel size | `20` |
 | `minZoom` | number | any positive number ≤ `maxZoom` | `1` |
 | `maxZoom` | number | any positive number ≥ `minZoom` | `4` |
 | `rotatable` | boolean | `true`, `false` | `true` |
@@ -171,10 +177,10 @@ default rather than silently misbehaving. `resolveEnumOption()` in
 | `extraFields` *(upload only)* | `Record<string,string>` | any | `{}` |
 | `fetchOptions` *(upload only)* | `RequestInit` | any valid fetch init | `{}` |
 
-> `frame.shape: "circle"` + `format: "image/jpeg"` logs a `console.warn` —
-> JPEG has no alpha channel, so the area outside the circle renders solid
-> black instead of transparent. Use `"image/png"` or `"image/webp"` for a
-> circle crop with a transparent background.
+> `frame.shape: "circle"` or `"rounded-rectangle"` + `format: "image/jpeg"`
+> logs a `console.warn` — JPEG has no alpha channel, so the area outside the
+> shape renders solid black instead of transparent. Use `"image/png"` or
+> `"image/webp"` for a crop with a transparent background.
 | `uploader` *(upload only)* | function | same shape as the constructor option | the constructor's `uploader`, or the built-in one |
 
 ### API naming rationale (vs. the API this project intentionally departs from)

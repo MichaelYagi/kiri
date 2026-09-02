@@ -3,6 +3,17 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.8
+
+- New `frame.shape: "rounded-rectangle"` option, plus `frame.cornerRadius`
+  (pixels, default `20`) to control its radius. Like `"circle"`, it's a real
+  clip on export/upload (transparent corners on PNG/WebP; a JPEG export
+  warns and renders solid black corners instead, since JPEG has no alpha
+  channel) — not just a visual overlay. The radius scales proportionally if
+  `export()`'s output size differs from the frame's own size. React/Vue
+  wrapper props need no changes — `cornerRadius` flows through automatically
+  since their `frame` prop is typed directly from core's `KiriOptions`.
+
 ## 0.1.0-alpha.7
 
 - Added `packages/core/README.md` — the published `@michaelyagi/kiri`
