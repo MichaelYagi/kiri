@@ -158,7 +158,7 @@ export class Kiri {
       }
     );
     if (this.opts.autoSizeStage) this.syncStageSize();
-    applyFilters(this.stage.imgEl, this.state.filters);
+    applyFilters(this.stage.imgEl, this.state.filters, this.stage.sharpenKernelEl, this.stage.sharpenFilterId);
     if (this.stage.zoomerEl) this.enableZoomer(this.stage.zoomerEl);
 
     this.gestureHandle = attachGestures(
@@ -374,6 +374,7 @@ export class Kiri {
       this.getFrameSize(),
       this.opts.frame.shape,
       this.opts.frame.cornerRadius,
+      this.stage.sharpenFilterId,
       options
     );
   }
@@ -442,7 +443,7 @@ export class Kiri {
     const scale =
       computeCoverScale(this.naturalSize, this.getFrameSize(), next.rotation) * next.zoom;
     applyTransform(this.stage.imageLayerEl, next, scale);
-    applyFilters(this.stage.imgEl, next.filters);
+    applyFilters(this.stage.imgEl, next.filters, this.stage.sharpenKernelEl, this.stage.sharpenFilterId);
     // Keeps the slider in sync regardless of what triggered the zoom change
     // (wheel, pinch, drag-clamping, or setZoom() itself) — setting .value
     // programmatically doesn't re-fire "input", so no feedback loop.

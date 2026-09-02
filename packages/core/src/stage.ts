@@ -1,5 +1,5 @@
 import type { Filters, FrameShape, KiriState, ZoomerPosition } from "./types";
-import { buildFilterString } from "./filters";
+import { buildFilterString, sharpenKernelMatrix } from "./filters";
 
 export interface StageElements {
   stageEl: HTMLDivElement;
@@ -7,6 +7,54 @@ export interface StageElements {
   imageLayerEl: HTMLDivElement;
   imgEl: HTMLImageElement;
   zoomerEl: HTMLInputElement | null;
+  /** id of the SVG `feConvolveMatrix` filter `buildFilterString()` references for `sharpness`. */
+  sharpenFilterId: string;
+  sharpenKernelEl: SVGFEConvolveMatrixElement;
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+let sharpenFilterCounter = 0;
+
+/**
+ * CSS has no `sharpen()` filter, so `sharpness` works through an SVG
+ * `feConvolveMatrix` referenced by `url(#id)` from the same filter string as
+ * brightness/contrast/saturation (see `filters.ts`'s `buildFilterString()`)
+ * — both `img.style.filter` and a canvas 2D context's `ctx.filter` support
+ * `url(#id)` references identically, so this one definition drives both live
+ * preview and export. A unique id per instance (rather than one shared id)
+ * avoids collisions between multiple `Kiri` instances on the same page.
+ * `color-interpolation-filters: sRGB` matters — SVG filter primitives
+ * default to linearRGB, which would visibly shift brightness/contrast
+ * relative to the sRGB-space CSS filters earlier in the same filter string.
+ */
+function createSharpenFilter(): { svg: SVGSVGElement; filterId: string; kernelEl: SVGFEConvolveMatrixElement } {
+  sharpenFilterCounter += 1;
+  const filterId = `kiri-sharpen-${sharpenFilterCounter}`;
+
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.style.position = "absolute";
+
+  const filterEl = document.createElementNS(SVG_NS, "filter");
+  filterEl.setAttribute("id", filterId);
+  filterEl.setAttribute("color-interpolation-filters", "sRGB");
+
+  const kernelEl = document.createElementNS(SVG_NS, "feConvolveMatrix");
+  kernelEl.setAttribute("order", "3");
+  kernelEl.setAttribute("divisor", "1");
+  kernelEl.setAttribute("edgeMode", "duplicate");
+  // Without this, feConvolveMatrix convolves the alpha channel too — the
+  // kernel's negative neighbor weights can drive alpha toward 0 right at a
+  // sharp edge, turning an opaque photo semi-transparent exactly where
+  // sharpening is strongest. Sharpening should only ever touch color.
+  kernelEl.setAttribute("preserveAlpha", "true");
+  kernelEl.setAttribute("kernelMatrix", sharpenKernelMatrix(1));
+
+  filterEl.appendChild(kernelEl);
+  svg.appendChild(filterEl);
+
+  return { svg, filterId, kernelEl };
 }
 
 export interface ZoomerConfig {
@@ -60,8 +108,12 @@ export function createStage(
     frameEl.style.borderRadius = `${cornerRadius}px`;
   }
 
+  const { svg: sharpenSvg, filterId: sharpenFilterId, kernelEl: sharpenKernelEl } =
+    createSharpenFilter();
+
   stageEl.appendChild(imageLayerEl);
   stageEl.appendChild(frameEl);
+  stageEl.appendChild(sharpenSvg);
 
   let zoomerEl: HTMLInputElement | null = null;
 
@@ -84,7 +136,7 @@ export function createStage(
     container.appendChild(stageEl);
   }
 
-  return { stageEl, frameEl, imageLayerEl, imgEl, zoomerEl };
+  return { stageEl, frameEl, imageLayerEl, imgEl, zoomerEl, sharpenFilterId, sharpenKernelEl };
 }
 
 export function setFrameSize(
@@ -129,6 +181,12 @@ export function applyTransform(
     `scale(${scaleX}, ${scaleY})`;
 }
 
-export function applyFilters(imgEl: HTMLImageElement, filters: Filters): void {
-  imgEl.style.filter = buildFilterString(filters);
+export function applyFilters(
+  imgEl: HTMLImageElement,
+  filters: Filters,
+  sharpenKernelEl: SVGFEConvolveMatrixElement,
+  sharpenFilterId: string
+): void {
+  sharpenKernelEl.setAttribute("kernelMatrix", sharpenKernelMatrix(filters.sharpness));
+  imgEl.style.filter = buildFilterString(filters, sharpenFilterId);
 }

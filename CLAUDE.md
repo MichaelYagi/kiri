@@ -18,13 +18,13 @@ messages.
 
 ## Status
 
-Released as `0.1.0-alpha.8` (all three packages, in lockstep). Core publishes
+Released as `0.1.0-alpha.9` (all three packages, in lockstep). Core publishes
 to npm as `@michaelyagi/kiri` automatically on `v*` git tags (see
 `design.md`'s "Publishing" section and `.github/workflows/publish.yml`);
 `kiri-react`/`kiri-vue` stay unpublished for now. See `CHANGELOG.md` for
 what's in this release. v1 (full
 parity) plus the extended feature set is implemented: filters
-(brightness/contrast/saturation/grayscale/sepia), `upload()`, batch cropping
+(brightness/contrast/saturation/sharpness/grayscale/sepia), `upload()`, batch cropping
 (a documented recipe, not a shipped class — see below), a built-in zoom
 slider, and the React/Vue wrapper packages. See `design.md`'s "Extended
 features" section for each API. Treat
@@ -142,6 +142,38 @@ version whenever a release-worthy change lands.
   proportionally the same. Same JPEG-alpha `console.warn` as circle. Verified
   in a real browser via pixel-level `getImageData`, including the scaled-radius
   case (custom output size).
+- `filters.sharpness` (default `1`, matching the other numeric filters'
+  "1 = unchanged" convention; values above `1` sharpen): CSS has no
+  `sharpen()` filter, so unlike brightness/contrast/saturation it can't be a
+  plain filter-string keyword. `stage.ts`'s `createSharpenFilter()` builds a
+  hidden 0×0 `<svg>` per `Kiri` instance containing a `feConvolveMatrix`
+  (a 3×3 unsharp-mask kernel — see `filters.ts`'s `sharpenKernelMatrix()`),
+  with a unique `id` (`kiri-sharpen-<n>`, module-level counter) so multiple
+  instances on one page don't collide; `buildFilterString()` **prepends**
+  `url(#id)` — before brightness/contrast/saturate, not after — when
+  `sharpness > 1`. That ordering is load-bearing, not stylistic: a real
+  Chromium bug/quirk makes `url(#id)` placed *after* native CSS filter
+  functions in the same chain render fully blank, confirmed by direct
+  browser testing (isolating the exact chain order that broke vs. worked)
+  after `filters.sharpness` first shipped with the reversed order and
+  silently produced transparent exports. Don't reorder `buildFilterString()`
+  without re-verifying pixel output in a real browser. Both
+  `img.style.filter` and a canvas 2D context's `ctx.filter` resolve
+  `url(#id)` identically — confirmed in a real browser that this holds even
+  when the canvas is never attached to the document (`export.ts`'s offscreen
+  `sourceCanvas`), so preview/export parity holds the same way it does for
+  the native CSS filters. `applyFilters()` rewrites just the kernel's
+  `kernelMatrix` attribute on every `setFilters()` call rather than
+  rebuilding the filter, so adjusting the value live stays cheap.
+  `edgeMode="duplicate"` avoids dark edge fringing;
+  `color-interpolation-filters="sRGB"` on the `<filter>` avoids a
+  brightness/contrast shift from SVG's `linearRGB` default relative to the
+  sRGB-space CSS filters earlier in the chain; `preserveAlpha="true"` on the
+  `feConvolveMatrix` matters too — without it, the alpha channel gets
+  convolved along with color, and the kernel's negative neighbor weights can
+  drive alpha toward 0 right at a sharp edge, turning an opaque photo
+  semi-transparent exactly where sharpening is strongest (caught the same
+  way as the ordering bug — real-browser pixel testing, not by inspection).
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

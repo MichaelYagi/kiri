@@ -23,16 +23,25 @@
 
 <main>
   <h1>Filters</h1>
-  <p class="lead">Brightness, contrast, saturation, grayscale, sepia — applied identically to the live preview and the exported image.</p>
+  <p class="lead">Brightness, contrast, saturation, sharpness, grayscale, sepia — applied identically to the live preview and the exported image.</p>
 
   <table>
     <tr><th>Filter</th><th>Type</th><th>Valid values</th><th>Default</th></tr>
     <tr><td><code>brightness</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> = unchanged)</td><td><code>1</code></td></tr>
     <tr><td><code>contrast</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> = unchanged)</td><td><code>1</code></td></tr>
     <tr><td><code>saturation</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> = unchanged)</td><td><code>1</code></td></tr>
+    <tr><td><code>sharpness</code></td><td>number</td><td><code>&gt;= 0</code> (<code>1</code> or below = unchanged; higher sharpens)</td><td><code>1</code></td></tr>
     <tr><td><code>grayscale</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
     <tr><td><code>sepia</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td></tr>
   </table>
+
+  <p><code>sharpness</code> works differently from the others: unlike
+  brightness/contrast/saturation, it isn't a native CSS filter — CSS has no
+  <code>sharpen()</code> function. Kiri generates a small SVG
+  <code>feConvolveMatrix</code> filter (an unsharp-mask kernel) per instance
+  and references it via a <code>url(#id)</code> appended to the same filter
+  string, so it's still just one filter string driving both the live preview
+  and the export — see <a href="architecture.html">Architecture</a> for how.</p>
 
   <h2>Setting filters</h2>
   <pre><code>// initial, via the constructor
@@ -51,8 +60,10 @@ cropper.setFilters({ brightness: 1.2, grayscale: true });</code></pre>
   <code>style.filter</code>, the export via the canvas 2D context's
   <code>ctx.filter</code> before drawing. Reusing the browser's own filter
   implementation for both means they're guaranteed to match pixel-for-pixel,
-  with no separately hand-rolled brightness/contrast/saturation pixel math to
-  get subtly wrong.</p>
+  with no separately hand-rolled brightness/contrast/saturation/sharpness
+  pixel math to get subtly wrong — including <code>sharpness</code>'s SVG
+  filter, since both <code>style.filter</code> and <code>ctx.filter</code>
+  support the same <code>url(#id)</code> reference syntax identically.</p>
 
   <div class="next-steps">Next: <a href="architecture.html">Architecture</a>.</div>
 </main>

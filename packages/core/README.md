@@ -13,8 +13,8 @@ A dependency-free TypeScript library for interactive image cropping in the brows
   are real clips on export (transparent corners on PNG/WebP), not just a
   visual overlay
 - **Zero-CSS sizing** — the stage auto-sizes itself to the frame's dimensions
-- **Filters** — brightness/contrast/saturation/grayscale/sepia, applied
-  identically to the live preview and the export
+- **Filters** — brightness/contrast/saturation/sharpness/grayscale/sepia,
+  applied identically to the live preview and the export
 - **Automatic EXIF orientation correction** on load
 - **Resizable frame**, four independent corner handles, with an optional
   `lockAspectRatio` to keep a fixed ratio while resizing
@@ -79,7 +79,7 @@ an interactive playground, and the full API reference.
 
 ## Status
 
-**`0.1.0-alpha.8`** — see [CHANGELOG.md](./CHANGELOG.md)
+**`0.1.0-alpha.9`** — see [CHANGELOG.md](./CHANGELOG.md)
 for what's in it. Core publishes to npm automatically on version tags via
 GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
 is expected to be mostly stable but may still change before a `0.1.0`

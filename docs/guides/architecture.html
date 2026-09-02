@@ -77,7 +77,24 @@
   <h2>Filters: the browser does the pixel math</h2>
   <p>Both the live preview and the canvas export apply the identical CSS
   <code>filter</code> string, so they're guaranteed to match — see
-  <a href="filters.html">Filters</a>.</p>
+  <a href="filters.html">Filters</a>. <code>sharpness</code> has no native
+  CSS filter to reuse (there's no <code>sharpen()</code> function), so each
+  <code>Kiri</code> instance builds a small SVG <code>feConvolveMatrix</code>
+  filter (a 3×3 unsharp-mask kernel, <code>edgeMode="duplicate"</code> to
+  avoid dark edge fringing, <code>preserveAlpha="true"</code> so sharpening
+  never touches opacity, <code>color-interpolation-filters="sRGB"</code> so
+  it doesn't visibly shift brightness relative to the sRGB-space CSS filters
+  in the chain) and references it with a <code>url(#id)</code> — placed
+  <strong>first</strong> in the filter string, before
+  brightness/contrast/saturate. That's not a style choice: a
+  <code>url(#id)</code> reference placed after native CSS filter functions
+  in the same chain renders fully blank in Chromium, confirmed directly in a
+  real browser. Still one filter string driving both preview and export,
+  just with one function that isn't a native CSS keyword. The kernel's
+  center/neighbor weights are recomputed from <code>sharpness</code> on
+  every <code>setFilters()</code> call and written onto the existing SVG
+  element (its attribute, not a rebuilt
+  filter), so adjusting the slider stays cheap.</p>
 
   <h2>Styling</h2>
   <p>Kiri ships a real, separate stylesheet

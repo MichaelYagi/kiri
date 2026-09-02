@@ -3,7 +3,14 @@ import { computeCropRegion, computeFrameSourceRect, exportCrop } from "../src/ex
 import type { KiriState } from "../src/types";
 
 const noFlip = { horizontal: false, vertical: false };
-const baseFilters = { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false };
+const baseFilters = {
+  brightness: 1,
+  contrast: 1,
+  saturation: 1,
+  sharpness: 1,
+  grayscale: false,
+  sepia: false,
+};
 
 function state(overrides: Partial<KiriState>): KiriState {
   return { zoom: 1, offset: { x: 0, y: 0 }, rotation: 0, flip: noFlip, filters: baseFilters, ...overrides };
@@ -79,7 +86,14 @@ describe("exportCrop option validation", () => {
     offset: { x: 0, y: 0 },
     rotation: 0,
     flip: { horizontal: false, vertical: false },
-    filters: { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false },
+    filters: {
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+      sharpness: 1,
+      grayscale: false,
+      sepia: false,
+    },
   };
 
   it("warns and falls back on an invalid export type", async () => {
@@ -89,7 +103,7 @@ describe("exportCrop option validation", () => {
     // jsdom has no real 2D canvas context, so this rejects downstream —
     // the validation warning fires before that point, which is what's
     // under test here.
-    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", 0, {
+    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", 0, "kiri-sharpen-test", {
       type: "svg" as never,
     }).catch(() => {});
 
@@ -101,7 +115,7 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", 0, {
+    await exportCrop(img, state, { width: 10, height: 10 }, "rectangle", 0, "kiri-sharpen-test", {
       format: "image/gif" as never,
     }).catch(() => {});
 
@@ -113,7 +127,7 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "circle", 0, {
+    await exportCrop(img, state, { width: 10, height: 10 }, "circle", 0, "kiri-sharpen-test", {
       format: "image/jpeg",
     }).catch(() => {});
 
@@ -125,7 +139,7 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "circle", 0, {
+    await exportCrop(img, state, { width: 10, height: 10 }, "circle", 0, "kiri-sharpen-test", {
       format: "image/png",
     }).catch(() => {});
 
@@ -137,9 +151,15 @@ describe("exportCrop option validation", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const img = document.createElement("img");
 
-    await exportCrop(img, state, { width: 10, height: 10 }, "rounded-rectangle", 20, {
-      format: "image/jpeg",
-    }).catch(() => {});
+    await exportCrop(
+      img,
+      state,
+      { width: 10, height: 10 },
+      "rounded-rectangle",
+      20,
+      "kiri-sharpen-test",
+      { format: "image/jpeg" }
+    ).catch(() => {});
 
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringMatching(/rounded-rectangle-shaped frame as image\/jpeg/)

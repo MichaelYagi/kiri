@@ -123,6 +123,7 @@ describe("Kiri", () => {
       brightness: 1.4,
       contrast: 1,
       saturation: 1,
+      sharpness: 1,
       grayscale: true,
       sepia: false,
     });
@@ -134,6 +135,48 @@ describe("Kiri", () => {
   it("accepts initial filters via options", () => {
     const cropper = new Kiri(container, { filters: { sepia: true } });
     expect(cropper.getState().filters.sepia).toBe(true);
+  });
+
+  describe("sharpness", () => {
+    it("does not reference the SVG sharpen filter when sharpness is unchanged (<= 1)", () => {
+      new Kiri(container);
+      const img = container.querySelector("img") as HTMLImageElement;
+      expect(img.style.filter).not.toMatch(/url\(/);
+    });
+
+    it("references the SVG sharpen filter once sharpness is set above 1", () => {
+      const cropper = new Kiri(container);
+      cropper.setFilters({ sharpness: 2 });
+
+      const img = container.querySelector("img") as HTMLImageElement;
+      const kernelEl = container.querySelector("feConvolveMatrix") as SVGFEConvolveMatrixElement;
+      const filterId = (container.querySelector("filter") as SVGFilterElement).id;
+
+      expect(img.style.filter).toContain(`url(#${filterId})`);
+      // center weight > 1 once sharpness > 1 -> real sharpening, not the identity kernel.
+      expect(Number(kernelEl.getAttribute("kernelMatrix")!.split(" ")[4])).toBeGreaterThan(1);
+    });
+
+    it("removes the url() reference again when sharpness drops back to 1", () => {
+      const cropper = new Kiri(container);
+      cropper.setFilters({ sharpness: 2 });
+      cropper.setFilters({ sharpness: 1 });
+
+      const img = container.querySelector("img") as HTMLImageElement;
+      expect(img.style.filter).not.toMatch(/url\(/);
+    });
+
+    it("gives each Kiri instance its own SVG sharpen filter id (no collisions on one page)", () => {
+      const containerB = document.createElement("div");
+      document.body.appendChild(containerB);
+
+      new Kiri(container);
+      new Kiri(containerB);
+
+      const idA = (container.querySelector("filter") as SVGFilterElement).id;
+      const idB = (containerB.querySelector("filter") as SVGFilterElement).id;
+      expect(idA).not.toBe(idB);
+    });
   });
 
   it("emits a change event on state updates", () => {
@@ -222,7 +265,14 @@ describe("Kiri", () => {
         offset: { x: 0, y: 0 },
         rotation: 90,
         flip: { horizontal: false, vertical: false },
-        filters: { brightness: 1, contrast: 1, saturation: 1, grayscale: false, sepia: false },
+        filters: {
+          brightness: 1,
+          contrast: 1,
+          saturation: 1,
+          sharpness: 1,
+          grayscale: false,
+          sepia: false,
+        },
       });
     });
 

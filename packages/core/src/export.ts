@@ -116,7 +116,8 @@ export function renderCropToCanvas(
   outputWidth: number,
   outputHeight: number,
   frameShape: FrameShape,
-  cornerRadius: number
+  cornerRadius: number,
+  sharpenFilterId: string
 ): HTMLCanvasElement {
   const natural: Size = { width: img.naturalWidth, height: img.naturalHeight };
   const scale = computeCoverScale(natural, frame, state.rotation) * state.zoom;
@@ -135,8 +136,11 @@ export function renderCropToCanvas(
   // space, consistent with what the user sees on screen.
   sctx.scale(scale * (state.flip.horizontal ? -1 : 1), scale * (state.flip.vertical ? -1 : 1));
   // Same CSS filter string as the live preview (see stage.ts's applyFilters),
-  // so the browser's own filter implementation guarantees they match exactly.
-  sctx.filter = buildFilterString(state.filters);
+  // so the browser's own filter implementation guarantees they match exactly
+  // — including sharpness, whose SVG feConvolveMatrix definition (see
+  // stage.ts) `url(#sharpenFilterId)` references works identically here even
+  // though sourceCanvas itself is never attached to the document.
+  sctx.filter = buildFilterString(state.filters, sharpenFilterId);
   sctx.drawImage(img, -natural.width / 2, -natural.height / 2, natural.width, natural.height);
 
   const { left: frameLeft, top: frameTop } = computeFrameSourceRect(
@@ -204,6 +208,7 @@ export async function exportCrop(
   frame: Size,
   frameShape: FrameShape,
   cornerRadius: number,
+  sharpenFilterId: string,
   options: ExportOptions
 ): Promise<ExportResult> {
   const type = resolveEnumOption(options.type, VALID_EXPORT_TYPES, "base64", "export type");
@@ -220,7 +225,16 @@ export async function exportCrop(
     );
   }
 
-  const canvas = renderCropToCanvas(img, state, frame, width, height, frameShape, cornerRadius);
+  const canvas = renderCropToCanvas(
+    img,
+    state,
+    frame,
+    width,
+    height,
+    frameShape,
+    cornerRadius,
+    sharpenFilterId
+  );
 
   if (type === "canvas") return canvas;
   if (type === "base64") return canvas.toDataURL(format, quality);

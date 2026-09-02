@@ -142,6 +142,7 @@ Every constructor option, its type, valid values, and default.
 | `filters.brightness` | number | `>= 0` (`1` = unchanged) | `1` |
 | `filters.contrast` | number | `>= 0` (`1` = unchanged) | `1` |
 | `filters.saturation` | number | `>= 0` (`1` = unchanged) | `1` |
+| `filters.sharpness` | number | `>= 0` (`1` or below = unchanged) | `1` |
 | `filters.grayscale` | boolean | `true`, `false` | `false` |
 | `filters.sepia` | boolean | `true`, `false` | `false` |
 | `uploader` | function | `(blob, options & {url}) => Promise<unknown>` | none — falls back to the built-in FormData/fetch uploader |
@@ -225,16 +226,55 @@ These were originally listed as v1 non-goals; all four are now implemented.
 
 ### Filters
 
-`Filters = { brightness, contrast, saturation: number; grayscale, sepia: boolean }`
-(defaults `1, 1, 1, false, false`). Set via `KiriOptions.filters` (initial) or
-`cropper.setFilters(partial)` (merges, clamps numeric values to `>= 0`).
+`Filters = { brightness, contrast, saturation, sharpness: number; grayscale,
+sepia: boolean }` (defaults `1, 1, 1, 1, false, false`). Set via
+`KiriOptions.filters` (initial) or `cropper.setFilters(partial)` (merges,
+clamps numeric values to `>= 0`). `sharpness`'s `1` (or below) means
+unchanged, matching the others' "1 = unchanged" convention; values above `1`
+sharpen.
 
 Both the live preview and the canvas export apply the *same* CSS `filter`
-string (`brightness() contrast() saturate() grayscale() sepia()`) — the
-preview via `img.style.filter`, the export via `canvasCtx.filter` before
-`drawImage`. Reusing the browser's own filter implementation for both means
-they're guaranteed to match pixel-for-pixel, with no hand-rolled
-brightness/contrast/saturation pixel math to get subtly wrong.
+string (`[url(#sharpenId)] brightness() contrast() saturate() [grayscale()]
+[sepia()]`) — the preview via `img.style.filter`, the export via
+`canvasCtx.filter` before `drawImage`. Reusing the browser's own filter
+implementation for both means they're guaranteed to match pixel-for-pixel,
+with no hand-rolled brightness/contrast/saturation pixel math to get subtly
+wrong.
+
+`sharpness` is the one filter with no native CSS equivalent — there's no
+`sharpen()` filter function — so it works through an SVG `feConvolveMatrix`
+filter instead: each `Kiri` instance creates one (a hidden 0×0 `<svg>`
+appended to its stage, with a unique `id` so multiple instances on one page
+don't collide) and references it via `url(#id)` **prepended** to the same
+filter string — not appended after the color-adjustment functions, despite
+sharpen-as-a-final-step being the more common photo-editing order. Verified
+directly in a real browser (Chromium) that a `url(#id)` SVG filter reference
+placed *after* one or more native CSS filter functions in the same chain
+silently renders fully blank/transparent, while the identical chain with
+`url(#id)` first renders correctly — a genuine browser quirk, not a design
+preference, so don't reorder this without re-verifying. Both
+`img.style.filter` and `ctx.filter` resolve `url(#id)` identically —
+including when `ctx` belongs to a canvas that's never attached to the
+document (`export.ts`'s offscreen `sourceCanvas`), also verified directly in
+a real browser. The kernel is the standard 3×3 unsharp-mask shape:
+
+```
+ 0  -k   0
+-k 1+4k -k
+ 0  -k   0
+```
+
+which always sums to `1` (no separate `divisor` needed), where `k =
+sharpness > 1 ? (sharpness - 1) / 4.5 : 0` — `0` at `sharpness <= 1`
+collapses to the identity kernel. `stage.ts`'s `applyFilters()` rewrites the
+kernel's `kernelMatrix` attribute (not the whole filter) on every
+`setFilters()` call, so adjusting the value stays cheap — no shader/program
+recompilation, no re-render-to-canvas-and-swap-the-`<img>-src` round trip.
+`edgeMode="duplicate"` avoids dark fringing at image edges, and
+`color-interpolation-filters="sRGB"` on the `<filter>` element matters:
+SVG filter primitives default to `linearRGB`, which would visibly shift
+brightness/contrast relative to the sRGB-space CSS filters earlier in the
+same filter string.
 
 ### Upload
 

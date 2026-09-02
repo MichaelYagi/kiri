@@ -3,6 +3,18 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.9
+
+- New `filters.sharpness` option, alongside brightness/contrast/saturation
+  (default `1`, same "1 = unchanged" convention; values above `1` sharpen).
+  CSS has no native `sharpen()` filter, so it works through a per-instance
+  SVG `feConvolveMatrix` filter (an unsharp-mask kernel) referenced via
+  `url(#id)` appended to the same filter string used for brightness/
+  contrast/saturation — still one filter string driving both the live
+  preview and the export, matching the same pixel-parity guarantee those
+  already had. React/Vue wrapper props need no changes, same as
+  `cornerRadius` before it.
+
 ## 0.1.0-alpha.8
 
 - New `frame.shape: "rounded-rectangle"` option, plus `frame.cornerRadius`

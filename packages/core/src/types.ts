@@ -16,11 +16,16 @@ export interface Flip {
   vertical: boolean;
 }
 
-/** Brightness/contrast/saturation are `>= 0`, where `1` means unchanged. */
+/**
+ * Brightness/contrast/saturation are `>= 0`, where `1` means unchanged.
+ * `sharpness` is also `>= 0`, but unlike the others `1` (or below) means
+ * *no* sharpening — values above `1` increase sharpening strength.
+ */
 export interface Filters {
   brightness: number;
   contrast: number;
   saturation: number;
+  sharpness: number;
   grayscale: boolean;
   sepia: boolean;
 }
