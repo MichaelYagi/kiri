@@ -201,5 +201,8 @@ input[type="file"] {
 #output img {
   max-width: 100%;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  /* No border-radius here deliberately — several pages (playground,
+     circle-crop, basic-crop) show the export to prove its actual pixel
+     shape (rectangle/circle/rounded-rectangle); a decorative CSS radius on
+     the <img> itself would misrepresent a plain rectangle as rounded. */
 }
