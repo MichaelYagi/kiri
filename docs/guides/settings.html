@@ -47,6 +47,7 @@
   flippable: true,
   resizableFrame: false,
   lockAspectRatio: false,      // only matters when resizableFrame is true
+  movableFrame: false,        // invert interaction: freeze the image, move the frame instead
   mouseWheelZoom: true,       // or "ctrl" to require Ctrl+wheel
   useExifOrientation: true,
   autoSizeStage: true,
@@ -131,6 +132,19 @@
       letting width and height resize independently — useful for a fixed
       shape like a 1:1 avatar or a 16:9 thumbnail that the end user can
       still resize.</td>
+    </tr>
+    <tr>
+      <td><code>movableFrame</code></td><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>false</code></td>
+      <td>Inverts the interaction model. When <code>true</code>, the image is
+      displayed at a fixed size and never pans or zooms —
+      <code>setZoom()</code>/<code>setOffset()</code> become no-ops, and mouse
+      wheel/pinch zoom stop doing anything. Dragging (or arrow keys) moves the
+      <em>frame</em> over the static image instead, via
+      <code>setFramePosition()</code>. Combine with <code>resizableFrame</code>
+      to also resize the frame in place — it's capped at the image's own
+      bounds instead of growing the image to compensate, since there's no
+      auto-zoom left to absorb the difference. <code>rotate()</code>/flip
+      still work, transforming the whole static image.</td>
     </tr>
     <tr>
       <td><code>mouseWheelZoom</code></td><td>boolean | string</td><td><code>true</code>, <code>false</code>, <code>"ctrl"</code></td><td><code>true</code></td>

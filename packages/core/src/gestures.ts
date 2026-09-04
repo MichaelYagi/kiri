@@ -67,6 +67,17 @@ interface GestureCallbacks {
   setState: (next: KiriState) => void;
   /** Called on the "0" key — reverts to the post-`load()` state. */
   reset: () => void;
+  /**
+   * `movableFrame` mode only: the image's fixed on-screen size — frozen at
+   * `load()` time (and recomputed on `rotate()`, since rotation swaps which
+   * natural dimension maps to width/height), *not* derived from the current
+   * `getFrameSize()`. Deliberately not just
+   * `effectiveRenderedSize(natural, getFrameSize(), rotation, 1)` computed
+   * on demand — the frame can be resized after load in this mode, and the
+   * image must stay the same size regardless, not jump every time the frame
+   * does.
+   */
+  getFixedImageSize: () => Size;
 }
 
 const KEYBOARD_PAN_STEP = 15;
@@ -74,6 +85,14 @@ const KEYBOARD_ZOOM_STEP = 0.1;
 
 export interface GestureOptions {
   mouseWheelZoom?: boolean | "ctrl";
+  /**
+   * When true, drag/wheel/pinch/arrow-keys move and (with `resizableFrame`)
+   * resize the *frame* instead of panning/zooming the image — see
+   * `KiriOptions.movableFrame`. The image is fixed at `zoom: 1`,
+   * `offset: { x: 0, y: 0 }` in this mode, so none of the zoom/offset
+   * gesture logic below runs at all.
+   */
+  movableFrame?: boolean;
 }
 
 function pointerDistance(a: PointerEvent, b: PointerEvent): number {
@@ -106,7 +125,21 @@ export function attachGestures(
       rotation: normalizeRotation(next.rotation),
       flip: next.flip,
       filters: next.filters,
+      framePosition: next.framePosition,
     });
+  }
+
+  // movableFrame mode: the image is fixed at zoom 1 / offset {0,0} (its
+  // "cover the frame" size at load time, never changed), and the *frame*
+  // moves within that fixed image's bounds instead. Clamping a smaller box
+  // (the frame) within a bigger one (the fixed-size image) is the exact
+  // same shape of problem `clampOffset` already solves for the opposite
+  // case (image within frame) — reused as-is, no sign flip needed, since
+  // its clamp range is symmetric around 0 either way.
+  function applyFramePosition(candidate: Offset): void {
+    const state = callbacks.getState();
+    const framePosition = clampOffset(candidate, callbacks.getFixedImageSize(), callbacks.getFrameSize());
+    callbacks.setState({ ...state, framePosition });
   }
 
   function onPointerDown(e: PointerEvent): void {
@@ -114,7 +147,11 @@ export function attachGestures(
     activePointers.set(e.pointerId, e);
     if (activePointers.size === 1) {
       const state = callbacks.getState();
-      dragStart = { x: e.clientX, y: e.clientY, offset: state.offset };
+      dragStart = {
+        x: e.clientX,
+        y: e.clientY,
+        offset: options.movableFrame ? state.framePosition : state.offset,
+      };
       stageEl.classList.add("kiri-dragging");
     } else if (activePointers.size === 2) {
       dragStart = null;
@@ -129,6 +166,8 @@ export function attachGestures(
     activePointers.set(e.pointerId, e);
 
     if (activePointers.size === 2) {
+      // No pinch-zoom in movableFrame mode — the image never zooms.
+      if (options.movableFrame) return;
       const [a, b] = [...activePointers.values()];
       const distance = pointerDistance(a, b);
       if (pinchStartDistance > 0) {
@@ -142,6 +181,13 @@ export function attachGestures(
     if (dragStart) {
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
+      if (options.movableFrame) {
+        // Direct manipulation: the frame follows the pointer, same as the
+        // image does in the default mode (drag right -> moves right) —
+        // unlike arrow keys below, which follow the opposite "scroll" idea.
+        applyFramePosition({ x: dragStart.offset.x + dx, y: dragStart.offset.y + dy });
+        return;
+      }
       const state = callbacks.getState();
       applyClampedState({
         ...state,
@@ -160,6 +206,7 @@ export function attachGestures(
   }
 
   function onWheel(e: WheelEvent): void {
+    if (options.movableFrame) return; // the image never zooms in this mode
     if (!options.mouseWheelZoom) return;
     if (options.mouseWheelZoom === "ctrl" && !e.ctrlKey) return;
     e.preventDefault();
@@ -174,8 +221,41 @@ export function attachGestures(
   // convention (pressing Right reveals more of the image's right side), the
   // opposite of drag's "content follows the pointer" — so the sign is
   // inverted relative to a drag delta of the same direction.
+  //
+  // movableFrame mode moves the *frame* instead, and deliberately uses the
+  // *other* convention (arrow direction = direct movement direction, not
+  // inverted) — the frame is the thing being directly manipulated here
+  // (like nudging a selection box), not a viewport revealing more content,
+  // so "Right" moving the frame right is the intuitive one. +/- zoom keys
+  // are no-ops, matching wheel/pinch: there's no zoom in this mode.
   function onKeyDown(e: KeyboardEvent): void {
     const state = callbacks.getState();
+    if (options.movableFrame) {
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          applyFramePosition({ ...state.framePosition, x: state.framePosition.x - KEYBOARD_PAN_STEP });
+          return;
+        case "ArrowRight":
+          e.preventDefault();
+          applyFramePosition({ ...state.framePosition, x: state.framePosition.x + KEYBOARD_PAN_STEP });
+          return;
+        case "ArrowUp":
+          e.preventDefault();
+          applyFramePosition({ ...state.framePosition, y: state.framePosition.y - KEYBOARD_PAN_STEP });
+          return;
+        case "ArrowDown":
+          e.preventDefault();
+          applyFramePosition({ ...state.framePosition, y: state.framePosition.y + KEYBOARD_PAN_STEP });
+          return;
+        case "0":
+          e.preventDefault();
+          callbacks.reset();
+          return;
+        default:
+          return;
+      }
+    }
     switch (e.key) {
       case "ArrowLeft":
         e.preventDefault();

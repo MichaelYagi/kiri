@@ -130,11 +130,17 @@ export function renderCropToCanvas(
   if (!sctx) throw new Error("Kiri: unable to get 2D canvas context");
 
   sctx.translate(sourceCanvas.width / 2, sourceCanvas.height / 2);
-  sctx.rotate((state.rotation * Math.PI) / 180);
-  // Flip is folded into scale's sign, applied before rotate (matches
-  // stage.ts's transform order) so rotation happens in "already mirrored"
-  // space, consistent with what the user sees on screen.
+  // Canvas 2D transform calls compose in call order, with the *last*-called
+  // one applied first to the drawn content (same right-to-left rule as a
+  // CSS transform list) — so calling scale() before rotate() here means
+  // rotate is applied first, then scale (flip) second, matching stage.ts's
+  // transform order. Flip is the outermost operation, applied to the
+  // already-rotated result, so it always mirrors along the
+  // currently-displayed horizontal/vertical axes rather than the image's
+  // own pre-rotation axes. Verified empirically (not just by this reasoning)
+  // with a real asymmetric-marker canvas test before trusting it.
   sctx.scale(scale * (state.flip.horizontal ? -1 : 1), scale * (state.flip.vertical ? -1 : 1));
+  sctx.rotate((state.rotation * Math.PI) / 180);
   // Same CSS filter string as the live preview (see stage.ts's applyFilters),
   // so the browser's own filter implementation guarantees they match exactly
   // — including sharpness, whose SVG feConvolveMatrix definition (see

@@ -21,6 +21,7 @@ export interface KiriCropperProps {
   flippable?: boolean;
   resizableFrame?: boolean;
   lockAspectRatio?: boolean;
+  movableFrame?: boolean;
   mouseWheelZoom?: KiriOptions["mouseWheelZoom"];
   useExifOrientation?: boolean;
   filters?: Partial<Filters>;
@@ -35,6 +36,7 @@ export interface KiriCropperHandle {
   getState: () => KiriState;
   setZoom: (zoom: number) => void;
   setOffset: (offset: Offset) => void;
+  setFramePosition: (position: Offset) => void;
   reset: () => void;
   rotate: (deltaDeg: number) => void;
   flipHorizontal: () => void;
@@ -58,6 +60,7 @@ function constructionOptionsKey(props: KiriCropperProps): string {
     flippable: props.flippable,
     resizableFrame: props.resizableFrame,
     lockAspectRatio: props.lockAspectRatio,
+    movableFrame: props.movableFrame,
     mouseWheelZoom: props.mouseWheelZoom,
     useExifOrientation: props.useExifOrientation,
   });
@@ -100,6 +103,7 @@ export const KiriCropper = forwardRef<KiriCropperHandle, KiriCropperProps>(funct
       flippable: props.flippable,
       resizableFrame: props.resizableFrame,
       lockAspectRatio: props.lockAspectRatio,
+      movableFrame: props.movableFrame,
       mouseWheelZoom: props.mouseWheelZoom,
       useExifOrientation: props.useExifOrientation,
       filters: props.filters,
@@ -136,6 +140,7 @@ export const KiriCropper = forwardRef<KiriCropperHandle, KiriCropperProps>(funct
       getState: () => cropperRef.current!.getState(),
       setZoom: (zoom) => cropperRef.current!.setZoom(zoom),
       setOffset: (offset) => cropperRef.current!.setOffset(offset),
+      setFramePosition: (position) => cropperRef.current!.setFramePosition(position),
       reset: () => cropperRef.current!.reset(),
       rotate: (deltaDeg) => cropperRef.current!.rotate(deltaDeg),
       flipHorizontal: () => cropperRef.current!.flipHorizontal(),

@@ -17,6 +17,7 @@ import type {
 } from "./types";
 import {
   applyFilters,
+  applyFramePosition,
   applyTransform,
   createStage,
   setFrameSize as setStageFrameSize,
@@ -29,6 +30,7 @@ import {
   clampOffset,
   clampZoom,
   computeCoverScale,
+  effectiveNaturalSize,
   effectiveRenderedSize,
   normalizeRotation,
   type Size,
@@ -63,6 +65,7 @@ interface ResolvedOptions {
   flippable: boolean;
   resizableFrame: boolean;
   lockAspectRatio: boolean;
+  movableFrame: boolean;
   mouseWheelZoom: boolean | "ctrl";
   useExifOrientation: boolean;
   uploader: Uploader | undefined;
@@ -74,7 +77,9 @@ interface ResolvedOptions {
 /**
  * An interactive image cropper attached to a plain DOM element. Drag to pan,
  * zoom via wheel/pinch/an optional built-in slider, rotate in 90° steps,
- * flip, apply filters, then export or upload the crop.
+ * flip, apply filters, then export or upload the crop. With
+ * `movableFrame: true`, this inverts: the image is fixed and the frame
+ * itself is what you drag/resize instead — see `KiriOptions.movableFrame`.
  */
 export class Kiri {
   private readonly container: HTMLElement;
@@ -90,7 +95,13 @@ export class Kiri {
     rotation: 0,
     flip: { horizontal: false, vertical: false },
     filters: DEFAULT_FILTERS,
+    framePosition: { x: 0, y: 0 },
   };
+  /**
+   * `movableFrame` mode only: the image's fixed on-screen size, frozen at
+   * `load()` time and recomputed on `rotate()` — see `getFixedImageSize()`.
+   */
+  private fixedImageSize: Size = { width: 0, height: 0 };
   /** Snapshot taken right after `load()` resolves, so `reset()` has something to revert to. */
   private initialState: KiriState | null = null;
   private listeners: Record<KiriEventName, KiriEventCallback[]> = { change: [] };
@@ -129,6 +140,7 @@ export class Kiri {
       flippable: options.flippable ?? true,
       resizableFrame: options.resizableFrame ?? false,
       lockAspectRatio: options.lockAspectRatio ?? false,
+      movableFrame: options.movableFrame ?? false,
       mouseWheelZoom: resolveMouseWheelZoom(options.mouseWheelZoom),
       useExifOrientation: options.useExifOrientation ?? true,
       uploader: options.uploader,
@@ -149,6 +161,7 @@ export class Kiri {
       this.opts.frame.width,
       this.opts.frame.height,
       this.opts.frame.cornerRadius,
+      this.opts.movableFrame,
       {
         show: this.opts.showZoomer,
         position: this.opts.zoomerPosition,
@@ -170,8 +183,9 @@ export class Kiri {
         getMinMaxZoom: () => ({ min: this.opts.minZoom, max: this.opts.maxZoom }),
         setState: (next) => this.commitState(next),
         reset: () => this.reset(),
+        getFixedImageSize: () => this.fixedImageSize,
       },
-      { mouseWheelZoom: this.opts.mouseWheelZoom }
+      { mouseWheelZoom: this.opts.mouseWheelZoom, movableFrame: this.opts.movableFrame }
     );
 
     if (this.opts.resizableFrame) this.enableFrameResize();
@@ -226,13 +240,26 @@ export class Kiri {
       height: this.stage.imgEl.naturalHeight,
     };
 
-    const zoom = clampZoom(
-      loadOptions.zoom ?? this.opts.minZoom,
-      this.opts.minZoom,
-      this.opts.maxZoom
-    );
+    // In movableFrame mode there's no pan/zoom concept at all, including at
+    // load — `loadOptions.zoom`/`offset` are ignored (not just clamped) so
+    // the image renders exactly centered at its frozen size from the very
+    // first frame. Without this, a caller-supplied zoom/offset would get
+    // clamped against a `rendered` size computed at *that* zoom, while the
+    // image actually always renders at `fixedImageSize`'s frozen (zoom-1)
+    // scale — the same current-vs-frozen mismatch as the commitState()/
+    // rotate() bugs above, just reachable through load() options instead.
+    const zoom = this.opts.movableFrame
+      ? 1
+      : clampZoom(loadOptions.zoom ?? this.opts.minZoom, this.opts.minZoom, this.opts.maxZoom);
     const rendered = effectiveRenderedSize(this.naturalSize, this.getFrameSize(), rotation, zoom);
-    const offset = clampOffset(loadOptions.offset ?? { x: 0, y: 0 }, rendered, this.getFrameSize());
+    const offset = this.opts.movableFrame
+      ? { x: 0, y: 0 }
+      : clampOffset(loadOptions.offset ?? { x: 0, y: 0 }, rendered, this.getFrameSize());
+    // Frozen here, not derived on demand — see fixedImageSize's own doc
+    // comment for why (the frame can be resized after load in movableFrame
+    // mode, and the image must not resize along with it).
+    this.fixedImageSize = effectiveRenderedSize(this.naturalSize, this.getFrameSize(), rotation, 1);
+    if (this.opts.movableFrame && this.opts.autoSizeStage) this.syncStageSizeToFixedImage();
 
     this.commitState({
       zoom,
@@ -240,6 +267,7 @@ export class Kiri {
       rotation,
       flip: { horizontal: flipHorizontal, vertical: flipVertical },
       filters: this.state.filters,
+      framePosition: { x: 0, y: 0 },
     });
     this.initialState = this.getState();
   }
@@ -252,11 +280,16 @@ export class Kiri {
       rotation: this.state.rotation,
       flip: { ...this.state.flip },
       filters: { ...this.state.filters },
+      framePosition: { ...this.state.framePosition },
     };
   }
 
-  /** Sets the zoom to an absolute value, clamped to `[minZoom, maxZoom]`. */
+  /**
+   * Sets the zoom to an absolute value, clamped to `[minZoom, maxZoom]`.
+   * No-op if `movableFrame: true` — the image never zooms in that mode.
+   */
   setZoom(zoom: number): void {
+    if (this.opts.movableFrame) return;
     const clamped = clampZoom(zoom, this.opts.minZoom, this.opts.maxZoom);
     const rendered = effectiveRenderedSize(
       this.naturalSize,
@@ -271,9 +304,11 @@ export class Kiri {
   /**
    * Sets the pan offset to an absolute value (image-center offset from the
    * frame center, in stage pixels), clamped so the frame stays fully covered
-   * by the rendered image.
+   * by the rendered image. No-op if `movableFrame: true` — the image never
+   * pans in that mode; see `setFramePosition()` instead.
    */
   setOffset(offset: Offset): void {
+    if (this.opts.movableFrame) return;
     const rendered = effectiveRenderedSize(
       this.naturalSize,
       this.getFrameSize(),
@@ -285,9 +320,22 @@ export class Kiri {
   }
 
   /**
-   * Reverts zoom/offset/rotation/flip/filters to what they were right after
-   * `load()` resolved (including any `loadOptions` passed to it). No-op if
-   * nothing has been loaded yet.
+   * Sets the frame's position to an absolute value (offset from stage
+   * center, in stage pixels), clamped so the frame stays fully within the
+   * image's fixed bounds. Only meaningful — and only takes effect — when
+   * `movableFrame: true`; a no-op otherwise, since the frame always stays
+   * centered in the default mode.
+   */
+  setFramePosition(position: Offset): void {
+    if (!this.opts.movableFrame) return;
+    const clamped = clampOffset(position, this.fixedImageSize, this.getFrameSize());
+    this.commitState({ ...this.state, framePosition: clamped });
+  }
+
+  /**
+   * Reverts zoom/offset/rotation/flip/filters/framePosition to what they
+   * were right after `load()` resolved (including any `loadOptions` passed
+   * to it). No-op if nothing has been loaded yet.
    */
   reset(): void {
     if (!this.initialState) return;
@@ -297,6 +345,7 @@ export class Kiri {
       rotation: this.initialState.rotation,
       flip: { ...this.initialState.flip },
       filters: { ...this.initialState.filters },
+      framePosition: { ...this.initialState.framePosition },
     });
   }
 
@@ -308,6 +357,31 @@ export class Kiri {
     if (!this.opts.rotatable) return;
     const snapped = Math.round(deltaDeg / 90) * 90;
     const rotation = normalizeRotation(this.state.rotation + snapped);
+
+    if (this.opts.movableFrame) {
+      // Rotation swaps which natural dimension maps to width/height, so
+      // fixedImageSize needs recomputing for the new orientation — but the
+      // *scale* it was established at must carry forward unchanged, not be
+      // re-derived from getFrameSize(). The frame may have been resized
+      // since load() (setFrameSize() deliberately never touches
+      // fixedImageSize — that's the whole point of this mode), and
+      // recomputing cover scale from that current, possibly-shrunk frame
+      // would silently re-anchor the "fixed" image to a different size on
+      // every rotate — the same class of bug as commitState()'s scale fix
+      // above, just hit through rotation instead of a live re-render.
+      const frozenScale =
+        this.fixedImageSize.width / effectiveNaturalSize(this.naturalSize, this.state.rotation).width;
+      const newEffNatural = effectiveNaturalSize(this.naturalSize, rotation);
+      this.fixedImageSize = {
+        width: newEffNatural.width * frozenScale,
+        height: newEffNatural.height * frozenScale,
+      };
+      if (this.opts.autoSizeStage) this.syncStageSizeToFixedImage();
+      const framePosition = clampOffset(this.state.framePosition, this.fixedImageSize, this.getFrameSize());
+      this.commitState({ ...this.state, rotation, framePosition });
+      return;
+    }
+
     const rendered = effectiveRenderedSize(
       this.naturalSize,
       this.getFrameSize(),
@@ -318,14 +392,23 @@ export class Kiri {
     this.commitState({ ...this.state, rotation, offset });
   }
 
-  /** Toggles horizontal flip, independent of rotation. No-op if `flippable: false`. */
+  /**
+   * Toggles horizontal flip. Always mirrors left-right as currently
+   * displayed on screen, regardless of the current `rotation` — not the
+   * image's own pre-rotation axes, so the visible effect stays "horizontal"
+   * no matter how the image is rotated. No-op if `flippable: false`.
+   */
   flipHorizontal(): void {
     if (!this.opts.flippable) return;
     const flip: Flip = { ...this.state.flip, horizontal: !this.state.flip.horizontal };
     this.commitState({ ...this.state, flip });
   }
 
-  /** Toggles vertical flip, independent of rotation. No-op if `flippable: false`. */
+  /**
+   * Toggles vertical flip. Always mirrors top-to-bottom as currently
+   * displayed on screen, regardless of the current `rotation`. No-op if
+   * `flippable: false`.
+   */
   flipVertical(): void {
     if (!this.opts.flippable) return;
     const flip: Flip = { ...this.state.flip, vertical: !this.state.flip.vertical };
@@ -334,14 +417,34 @@ export class Kiri {
 
   /**
    * Resizes the frame. Also resizes the stage to match, if
-   * `autoSizeStage: true` (the default). Each axis is clamped to a 20px
-   * minimum.
+   * `autoSizeStage: true` (the default) — except in `movableFrame` mode,
+   * where the stage stays pinned to the fixed image's own size (see
+   * `fixedImageSize`'s doc comment) instead of following the frame; letting
+   * the stage shrink along with the frame there would clip the (unchanged,
+   * still full-size) image down to whatever's left, visually reading as the
+   * picture itself shrinking even though its actual rendered size never
+   * changes. Each axis is clamped to a 20px minimum.
    */
   setFrameSize(width: number, height: number): void {
     this.opts.frame.width = Math.max(MIN_FRAME_SIZE, width);
     this.opts.frame.height = Math.max(MIN_FRAME_SIZE, height);
+    if (this.opts.movableFrame) {
+      // Unlike the default mode (where the image auto-zooms to always cover
+      // whatever frame size is set), the image is fixed here — so growing
+      // the frame past the image's own bounds has to be capped, not
+      // absorbed by zooming the image further.
+      this.opts.frame.width = Math.min(this.opts.frame.width, this.fixedImageSize.width);
+      this.opts.frame.height = Math.min(this.opts.frame.height, this.fixedImageSize.height);
+    }
     setStageFrameSize(this.stage.frameEl, this.opts.frame.width, this.opts.frame.height);
-    if (this.opts.autoSizeStage) this.syncStageSize();
+    if (this.opts.autoSizeStage && !this.opts.movableFrame) this.syncStageSize();
+
+    if (this.opts.movableFrame) {
+      const framePosition = clampOffset(this.state.framePosition, this.fixedImageSize, this.getFrameSize());
+      this.commitState({ ...this.state, framePosition });
+      return;
+    }
+
     const rendered = effectiveRenderedSize(
       this.naturalSize,
       this.getFrameSize(),
@@ -370,7 +473,7 @@ export class Kiri {
   async export(options: ExportOptions = {}): Promise<ExportResult> {
     return exportCrop(
       this.stage.imgEl,
-      this.state,
+      this.getEffectiveStateForCrop(),
       this.getFrameSize(),
       this.opts.frame.shape,
       this.opts.frame.cornerRadius,
@@ -386,7 +489,7 @@ export class Kiri {
    * a client-re-encoded image. See {@link CropRegion}.
    */
   getCropRegion(): CropRegion {
-    return computeCropRegion(this.naturalSize, this.getFrameSize(), this.state);
+    return computeCropRegion(this.naturalSize, this.getFrameSize(), this.getEffectiveStateForCrop());
   }
 
   /**
@@ -430,6 +533,46 @@ export class Kiri {
     return { width: this.opts.frame.width, height: this.opts.frame.height };
   }
 
+  /**
+   * `computeCropRegion()`/`renderCropToCanvas()` only know one model: an
+   * image shifted by `offset` under a frame fixed at center, scaled by
+   * `computeCoverScale(natural, frame, rotation) * zoom` — where `frame` is
+   * whatever's passed in, i.e. the *current* frame size. In `movableFrame`
+   * mode neither of those assumptions holds as-is: it's the frame that
+   * shifts (by `framePosition`, image fixed at center), and the image's
+   * scale must stay pinned to `fixedImageSize` regardless of how the frame
+   * has since been resized — not recomputed from the current frame size,
+   * which is exactly what those functions would otherwise do internally.
+   *
+   * Both are fixed by substituting two `state` fields before calling them,
+   * rather than changing either function:
+   * - `offset = -framePosition` — "frame moved right by d" and "image moved
+   *   left by d" describe the identical relative geometry, so this alone
+   *   carries the frame's position into the existing math unmodified.
+   *   (`state.offset` is always `{0,0}` in this mode already, since
+   *   `setOffset()`/gesture panning are no-ops here — this substitution is
+   *   what actually does the work, not a redundant no-op.)
+   * - `zoom` = a value chosen so that
+   *   `computeCoverScale(natural, currentFrame, rotation) * zoom` evaluates
+   *   to exactly `fixedImageSize`'s own scale, whatever the current frame
+   *   size is — i.e. `zoom = frozenScale / computeCoverScale(natural,
+   *   currentFrame, rotation)`, which cancels the current-frame-size term
+   *   out algebraically. Caught by an actual pixel test (a moved+resized
+   *   frame exported as fully transparent) before trusting the offset
+   *   substitution was sufficient on its own — it wasn't.
+   */
+  private getEffectiveStateForCrop(): KiriState {
+    if (!this.opts.movableFrame) return this.state;
+    const frozenScale =
+      this.fixedImageSize.width / effectiveNaturalSize(this.naturalSize, this.state.rotation).width;
+    const currentCoverScale = computeCoverScale(this.naturalSize, this.getFrameSize(), this.state.rotation);
+    return {
+      ...this.state,
+      offset: { x: -this.state.framePosition.x, y: -this.state.framePosition.y },
+      zoom: frozenScale / currentCoverScale,
+    };
+  }
+
   private syncStageSize(): void {
     setStageSize(
       this.stage.stageEl,
@@ -438,12 +581,36 @@ export class Kiri {
     );
   }
 
+  // movableFrame's stage-sizing counterpart to syncStageSize() above: pins
+  // the stage to the fixed image's own size (so the whole image stays
+  // visible/on-screen) instead of the frame's, which may since have been
+  // resized independently. Called after load() and rotate() establish/
+  // recompute fixedImageSize — never from setFrameSize(), which is the
+  // entire point of this mode.
+  private syncStageSizeToFixedImage(): void {
+    setStageSize(
+      this.stage.stageEl,
+      this.fixedImageSize.width + STAGE_AUTO_SIZE_PADDING * 2,
+      this.fixedImageSize.height + STAGE_AUTO_SIZE_PADDING * 2
+    );
+  }
+
   private commitState(next: KiriState): void {
     this.state = next;
-    const scale =
-      computeCoverScale(this.naturalSize, this.getFrameSize(), next.rotation) * next.zoom;
+    // In movableFrame mode the image's rendered scale must stay pinned to
+    // fixedImageSize (frozen at load()/rotate()) regardless of the frame's
+    // current size — otherwise resizing the frame past the point where the
+    // *other* axis becomes the covering-scale's limiting dimension silently
+    // changes computeCoverScale()'s result and the image visibly zooms,
+    // even though `zoom` itself never left 1 (setZoom() is a no-op here).
+    // Caught live in the browser: growing/shrinking the frame with
+    // resizableFrame + movableFrame both on visibly resized the image.
+    const scale = this.opts.movableFrame
+      ? this.fixedImageSize.width / effectiveNaturalSize(this.naturalSize, next.rotation).width
+      : computeCoverScale(this.naturalSize, this.getFrameSize(), next.rotation) * next.zoom;
     applyTransform(this.stage.imageLayerEl, next, scale);
     applyFilters(this.stage.imgEl, next.filters, this.stage.sharpenKernelEl, this.stage.sharpenFilterId);
+    if (this.opts.movableFrame) applyFramePosition(this.stage.frameEl, next.framePosition);
     // Keeps the slider in sync regardless of what triggered the zoom change
     // (wheel, pinch, drag-clamping, or setZoom() itself) — setting .value
     // programmatically doesn't re-fire "input", so no feedback loop.

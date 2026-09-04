@@ -71,6 +71,7 @@ export function createStage(
   frameWidth: number,
   frameHeight: number,
   cornerRadius: number,
+  movableFrame: boolean,
   zoomer: ZoomerConfig
 ): StageElements {
   container.innerHTML = "";
@@ -84,7 +85,9 @@ export function createStage(
   stageEl.setAttribute("role", "application");
   stageEl.setAttribute(
     "aria-label",
-    "Image cropper. Drag to pan. Arrow keys to pan, plus/minus to zoom, 0 to reset."
+    movableFrame
+      ? "Image cropper. Drag or use arrow keys to move the crop frame over the fixed image. 0 resets."
+      : "Image cropper. Drag to pan. Arrow keys to pan, plus/minus to zoom, 0 to reset."
   );
 
   const imageLayerEl = document.createElement("div");
@@ -128,6 +131,11 @@ export function createStage(
     zoomerEl.max = String(zoomer.max);
     zoomerEl.step = "0.01";
     zoomerEl.value = String(zoomer.value);
+    // Zoom has no meaning in movableFrame mode (setZoom() is a no-op there,
+    // and never reaches the commitState() call that resyncs this input's
+    // value) — leaving it enabled would let it drag freely and just... stay
+    // wherever it was dropped, with zero effect and no visual snap-back.
+    if (movableFrame) zoomerEl.disabled = true;
 
     rootEl.appendChild(stageEl);
     rootEl.appendChild(zoomerEl);
@@ -169,16 +177,22 @@ export function applyTransform(
 ): void {
   // translate(-50%,-50%) centers the layer's own center at the stage center;
   // the pixel translate shifts it by the (rotation/scale-independent) offset;
-  // rotate then scale (with flip folded into scale's sign) apply around the
-  // layer's own center (default transform-origin), flip first/innermost so a
-  // mirrored image still rotates the way the user expects.
+  // scale (flip) then rotate — flip is OUTERMOST, applied to the
+  // already-rotated result, not the image's own pre-rotation axes. That
+  // means "flip horizontal" always mirrors left-right as currently shown on
+  // screen, and "flip vertical" always mirrors top-to-bottom as currently
+  // shown, regardless of the current rotation — not a mirror of the
+  // original image's intrinsic axes (which would make the visible effect of
+  // "horizontal" flip depend on rotation, e.g. become a vertical-looking
+  // flip once rotated 90°). Both apply around the layer's own center
+  // (default transform-origin) either way.
   const scaleX = renderedScale * (state.flip.horizontal ? -1 : 1);
   const scaleY = renderedScale * (state.flip.vertical ? -1 : 1);
   imageLayerEl.style.transform =
     `translate(-50%, -50%) ` +
     `translate(${state.offset.x}px, ${state.offset.y}px) ` +
-    `rotate(${state.rotation}deg) ` +
-    `scale(${scaleX}, ${scaleY})`;
+    `scale(${scaleX}, ${scaleY}) ` +
+    `rotate(${state.rotation}deg)`;
 }
 
 export function applyFilters(
@@ -189,4 +203,16 @@ export function applyFilters(
 ): void {
   sharpenKernelEl.setAttribute("kernelMatrix", sharpenKernelMatrix(filters.sharpness));
   imgEl.style.filter = buildFilterString(filters, sharpenFilterId);
+}
+
+/**
+ * Positions the frame itself — only meaningful in `movableFrame` mode; the
+ * default mode never calls this, leaving the frame at kiri.css's static
+ * `.kiri-frame` rule (centered, no inline transform). This inline transform
+ * overrides that rule the same way `applyTransform()` drives the image
+ * layer's position, just for the frame instead of the image.
+ */
+export function applyFramePosition(frameEl: HTMLDivElement, framePosition: { x: number; y: number }): void {
+  frameEl.style.transform =
+    `translate(-50%, -50%) ` + `translate(${framePosition.x}px, ${framePosition.y}px)`;
 }

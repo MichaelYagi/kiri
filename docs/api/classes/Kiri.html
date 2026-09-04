@@ -13,10 +13,12 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>An interactive image cropper attached to a plain DOM element. Drag to pan,
 zoom via wheel/pinch/an optional built-in slider, rotate in 90° steps,
-flip, apply filters, then export or upload the crop.</p>
+flip, apply filters, then export or upload the crop. With
+<code>movableFrame: true</code>, this inverts: the image is fixed and the frame
+itself is what you drag/resize instead — see <code>KiriOptions.movableFrame</code>.</p>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L79">kiri.ts:79</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L84">kiri.ts:84</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -32,6 +34,7 @@ flip, apply filters, then export or upload the crop.</p>
 <a href="#getstate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>State</span></a>
 <a href="#setzoom" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Zoom</span></a>
 <a href="#setoffset" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Offset</span></a>
+<a href="#setframeposition" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Frame<wbr/>Position</span></a>
 <a href="#reset" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a>
 <a href="#rotate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>rotate</span></a>
 <a href="#fliphorizontal" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flip<wbr/>Horizontal</span></a>
@@ -66,7 +69,7 @@ flip, apply filters, then export or upload the crop.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">Kiri</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L103">kiri.ts:103</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L114">kiri.ts:114</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -93,7 +96,7 @@ data without an extra fetch.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L189">kiri.ts:189</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L203">kiri.ts:203</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getstate"><span>get<wbr/>State</span><a href="#getstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -104,14 +107,15 @@ data without an extra fetch.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/KiriState.html" class="tsd-signature-type tsd-kind-interface">KiriState</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L248">kiri.ts:248</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L276">kiri.ts:276</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setzoom"><span>set<wbr/>Zoom</span><a href="#setzoom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="setzoom-1"><span class="tsd-kind-call-signature">setZoom</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">zoom</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setzoom-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Sets the zoom to an absolute value, clamped to <code>[minZoom, maxZoom]</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Sets the zoom to an absolute value, clamped to <code>[minZoom, maxZoom]</code>.
+No-op if <code>movableFrame: true</code> — the image never zooms in that mode.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -119,7 +123,7 @@ data without an extra fetch.</p>
 <li><span><span class="tsd-kind-parameter">zoom</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L259">kiri.ts:259</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L291">kiri.ts:291</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setoffset"><span>set<wbr/>Offset</span><a href="#setoffset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -128,7 +132,8 @@ data without an extra fetch.</p>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Sets the pan offset to an absolute value (image-center offset from the
 frame center, in stage pixels), clamped so the frame stays fully covered
-by the rendered image.</p>
+by the rendered image. No-op if <code>movableFrame: true</code> — the image never
+pans in that mode; see <code>setFramePosition()</code> instead.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -136,20 +141,39 @@ by the rendered image.</p>
 <li><span><span class="tsd-kind-parameter">offset</span>: <a href="../interfaces/Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L276">kiri.ts:276</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L310">kiri.ts:310</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setframeposition"><span>set<wbr/>Frame<wbr/>Position</span><a href="#setframeposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setframeposition-1"><span class="tsd-kind-call-signature">setFramePosition</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setframeposition-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Sets the frame's position to an absolute value (offset from stage
+center, in stage pixels), clamped so the frame stays fully within the
+image's fixed bounds. Only meaningful — and only takes effect — when
+<code>movableFrame: true</code>; a no-op otherwise, since the frame always stays
+centered in the default mode.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">position</span>: <a href="../interfaces/Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L329">kiri.ts:329</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="reset-1"><span class="tsd-kind-call-signature">reset</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#reset-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Reverts zoom/offset/rotation/flip/filters to what they were right after
-<code>load()</code> resolved (including any <code>loadOptions</code> passed to it). No-op if
-nothing has been loaded yet.</p>
+<div class="tsd-comment tsd-typography"><p>Reverts zoom/offset/rotation/flip/filters/framePosition to what they
+were right after <code>load()</code> resolved (including any <code>loadOptions</code> passed
+to it). No-op if nothing has been loaded yet.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L292">kiri.ts:292</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L340">kiri.ts:340</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rotate"><span>rotate</span><a href="#rotate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -165,29 +189,34 @@ No-op if <code>rotatable: false</code> was passed to the constructor.</p>
 <li><span><span class="tsd-kind-parameter">deltaDeg</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L307">kiri.ts:307</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L356">kiri.ts:356</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="fliphorizontal"><span>flip<wbr/>Horizontal</span><a href="#fliphorizontal" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="fliphorizontal-1"><span class="tsd-kind-call-signature">flipHorizontal</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#fliphorizontal-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Toggles horizontal flip, independent of rotation. No-op if <code>flippable: false</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Toggles horizontal flip. Always mirrors left-right as currently
+displayed on screen, regardless of the current <code>rotation</code> — not the
+image's own pre-rotation axes, so the visible effect stays &quot;horizontal&quot;
+no matter how the image is rotated. No-op if <code>flippable: false</code>.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L322">kiri.ts:322</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L401">kiri.ts:401</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="flipvertical"><span>flip<wbr/>Vertical</span><a href="#flipvertical" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="flipvertical-1"><span class="tsd-kind-call-signature">flipVertical</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#flipvertical-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Toggles vertical flip, independent of rotation. No-op if <code>flippable: false</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Toggles vertical flip. Always mirrors top-to-bottom as currently
+displayed on screen, regardless of the current <code>rotation</code>. No-op if
+<code>flippable: false</code>.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L329">kiri.ts:329</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L412">kiri.ts:412</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setframesize"><span>set<wbr/>Frame<wbr/>Size</span><a href="#setframesize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -195,8 +224,13 @@ No-op if <code>rotatable: false</code> was passed to the constructor.</p>
 <div class="tsd-signature tsd-anchor-link" id="setframesize-1"><span class="tsd-kind-call-signature">setFrameSize</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">width</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">height</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setframesize-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Resizes the frame. Also resizes the stage to match, if
-<code>autoSizeStage: true</code> (the default). Each axis is clamped to a 20px
-minimum.</p>
+<code>autoSizeStage: true</code> (the default) — except in <code>movableFrame</code> mode,
+where the stage stays pinned to the fixed image's own size (see
+<code>fixedImageSize</code>'s doc comment) instead of following the frame; letting
+the stage shrink along with the frame there would clip the (unchanged,
+still full-size) image down to whatever's left, visually reading as the
+picture itself shrinking even though its actual rendered size never
+changes. Each axis is clamped to a 20px minimum.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -205,7 +239,7 @@ minimum.</p>
 <li><span><span class="tsd-kind-parameter">height</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L340">kiri.ts:340</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L428">kiri.ts:428</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setfilters"><span>set<wbr/>Filters</span><a href="#setfilters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -221,7 +255,7 @@ left as they are). Numeric values are clamped to <code>&gt;= 0</code>.</p>
 <li><span><span class="tsd-kind-parameter">filters</span>: <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Filters.html" class="tsd-signature-type tsd-kind-interface">Filters</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L359">kiri.ts:359</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L462">kiri.ts:462</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="export"><span>export</span><a href="#export" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -240,7 +274,7 @@ JPEG has no alpha channel.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/ExportResult.html" class="tsd-signature-type tsd-kind-type-alias">ExportResult</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A data URL string (<code>type: &quot;base64&quot;</code>, the default), a <code>Blob</code>, or an <code>HTMLCanvasElement</code>.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L370">kiri.ts:370</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L473">kiri.ts:473</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcropregion"><span>get<wbr/>Crop<wbr/>Region</span><a href="#getcropregion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -254,7 +288,7 @@ a client-re-encoded image. See <a href="../interfaces/CropRegion.html" class="ts
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/CropRegion.html" class="tsd-signature-type tsd-kind-interface">CropRegion</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L388">kiri.ts:388</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L491">kiri.ts:491</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="upload"><span>upload</span><a href="#upload" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -272,7 +306,7 @@ wins over the constructor's, which wins over the built-in default).</p>
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/UploadOptions.html" class="tsd-signature-type tsd-kind-interface">UploadOptions</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L397">kiri.ts:397</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L500">kiri.ts:500</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="on"><span>on</span><a href="#on" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -288,7 +322,7 @@ wins over the constructor's, which wins over the built-in default).</p>
 <li><span><span class="tsd-kind-parameter">callback</span>: <a href="../types/KiriEventCallback.html" class="tsd-signature-type tsd-kind-type-alias">KiriEventCallback</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L404">kiri.ts:404</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L507">kiri.ts:507</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="off"><span>off</span><a href="#off" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -304,7 +338,7 @@ wins over the constructor's, which wins over the built-in default).</p>
 <li><span><span class="tsd-kind-parameter">callback</span>: <a href="../types/KiriEventCallback.html" class="tsd-signature-type tsd-kind-type-alias">KiriEventCallback</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L409">kiri.ts:409</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L512">kiri.ts:512</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="destroy"><span>destroy</span><a href="#destroy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -320,7 +354,7 @@ unmounting) to avoid leaking listeners.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/kiri.ts#L421">kiri.ts:421</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/kiri.ts#L524">kiri.ts:524</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -338,7 +372,7 @@ unmounting) to avoid leaking listeners.</p>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#load"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>load</span></a><a href="#getstate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>State</span></a><a href="#setzoom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Zoom</span></a><a href="#setoffset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Offset</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#rotate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>rotate</span></a><a href="#fliphorizontal"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flip<wbr/>Horizontal</span></a><a href="#flipvertical"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flip<wbr/>Vertical</span></a><a href="#setframesize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Frame<wbr/>Size</span></a><a href="#setfilters"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Filters</span></a><a href="#export"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>export</span></a><a href="#getcropregion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Crop<wbr/>Region</span></a><a href="#upload"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>upload</span></a><a href="#on"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>on</span></a><a href="#off"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>off</span></a><a href="#destroy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>destroy</span></a></div></details></div></details></div>
+<div><a href="#load"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>load</span></a><a href="#getstate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>State</span></a><a href="#setzoom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Zoom</span></a><a href="#setoffset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Offset</span></a><a href="#setframeposition"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Frame<wbr/>Position</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#rotate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>rotate</span></a><a href="#fliphorizontal"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flip<wbr/>Horizontal</span></a><a href="#flipvertical"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flip<wbr/>Vertical</span></a><a href="#setframesize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Frame<wbr/>Size</span></a><a href="#setfilters"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Filters</span></a><a href="#export"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>export</span></a><a href="#getcropregion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Crop<wbr/>Region</span></a><a href="#upload"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>upload</span></a><a href="#on"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>on</span></a><a href="#off"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>off</span></a><a href="#destroy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>destroy</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="../index.html" class="tsd-nav-link">Guides</a><a href="../playground/index.html" class="tsd-nav-link">Playground</a></nav>
 <nav class="tsd-navigation"><a href="../index.html">Kiri API reference</a>

@@ -18,7 +18,7 @@ messages.
 
 ## Status
 
-Released as `0.1.0-alpha.9` (all three packages, in lockstep). Core publishes
+Released as `0.1.0-alpha.10` (all three packages, in lockstep). Core publishes
 to npm as `@michaelyagi/kiri` automatically on `v*` git tags (see
 `design.md`'s "Publishing" section and `.github/workflows/publish.yml`);
 `kiri-react`/`kiri-vue` stay unpublished for now. See `CHANGELOG.md` for
@@ -26,8 +26,9 @@ what's in this release. v1 (full
 parity) plus the extended feature set is implemented: filters
 (brightness/contrast/saturation/sharpness/grayscale/sepia), `upload()`, batch cropping
 (a documented recipe, not a shipped class — see below), a built-in zoom
-slider, and the React/Vue wrapper packages. See `design.md`'s "Extended
-features" section for each API. Treat
+slider, a `movableFrame` mode (drag/resize the frame over a fixed image
+instead of panning/zooming the image), and the React/Vue wrapper packages.
+See `design.md`'s "Extended features" section for each API. Treat
 `design.md` as the source of truth for the intended API; update it alongside
 any design decisions that change, and add a `CHANGELOG.md` entry for the next
 version whenever a release-worthy change lands.
@@ -174,6 +175,64 @@ version whenever a release-worthy change lands.
   drive alpha toward 0 right at a sharp edge, turning an opaque photo
   semi-transparent exactly where sharpening is strongest (caught the same
   way as the ordering bug — real-browser pixel testing, not by inspection).
+- Flip/rotation composition order: `flipHorizontal()`/`flipVertical()`
+  always mirror what's currently *displayed* (screen-space) — e.g.
+  "horizontal" flip always reads as horizontal, regardless of the current
+  rotation — not the image's own pre-rotation axes. Originally shipped the
+  other way (flip applied before rotation, i.e. intrinsic-space), which a
+  user caught by reporting that `rotate(180)` then `flipHorizontal()`
+  produced a vertical-looking mirror instead of feeling like a horizontal
+  one — mathematically correct under the old model (reflections + 180°
+  rotation compose into the other axis) but not the expected/intuitive
+  behavior. Fixed by swapping which operation is outermost: `stage.ts`'s
+  `applyTransform()` now lists `scale(flip) rotate(deg)` (rotate rightmost →
+  applied first); `export.ts`'s `renderCropToCanvas()` now calls
+  `sctx.scale(...)` before `sctx.rotate(...)` (canvas 2D transform calls
+  compose in call order, last-called applied first — same rule, opposite
+  surface syntax from CSS's list order, easy to get backwards — verified
+  the actual composition rule empirically with a real asymmetric-marker
+  canvas test before trusting it, not from memory alone).
+  **This flowed into `exif.ts`'s `orientationToTransform()` table too**:
+  orientations 5 and 7 (the ones that combine both rotation and flip) had
+  their rotation values tuned for the old order and are now wrong under the
+  new one — reflections invert the effective rotation direction
+  (`flip · rotate(θ) = rotate(-θ) · flip`), so orientation 5 changed from
+  `{rotation: 90, flipHorizontal: true}` to `{rotation: 270, flipHorizontal:
+  true}`, and 7 from `270`→`90`. Orientations 2/3/4/6/8 are unaffected (2
+  and 4 have no rotation-order ambiguity since 0°/180° are their own
+  negation mod 360; 3/6/8 have no flip at all). Verified by direct pixel
+  comparison: new-order `rotate(270)+flip` reproduces the exact same output
+  old-order `rotate(90)+flip` did, and vice versa — not re-derived from the
+  EXIF spec from scratch. `exif.test.ts`'s assertions for cases 5/7 are
+  updated to match.
+- `movableFrame` (default `false`): inverts which element is interactive —
+  the image is fixed at load (no pan/zoom; `setZoom()`/`setOffset()` become
+  no-ops) and dragging/arrow-keys move the *frame* over it instead, via a new
+  `setFramePosition()` method and `state.framePosition` field. Combined with
+  `resizableFrame`, its corner handles resize the frame too, capped at the
+  image's own bounds in `setFrameSize()` (`kiri.ts`) since there's no
+  auto-zoom left to grow into. Reuses the existing offset/frame-clamp
+  geometry rather than duplicating it: `computeCropRegion()`/
+  `renderCropToCanvas()` (used by `export()`/`getCropRegion()`) are driven
+  through unmodified by substituting `offset = -framePosition` (a moved frame
+  and an oppositely-moved image describe identical relative geometry) and a
+  `zoom` value that algebraically cancels `computeCoverScale()`'s dependency
+  on the *current* frame size back out to the size frozen at load
+  (`fixedImageSize`, recomputed on `rotate()`); `clampOffset()`'s already-
+  symmetric range needed no sign flip to double as frame-position clamping.
+  **The live-preview render (`commitState()`) needed the identical
+  frozen-scale substitution independently** — it was initially left deriving
+  the image's on-screen scale from `computeCoverScale(natural, currentFrame,
+  rotation) * zoom` (current frame size) rather than `fixedImageSize`, which
+  only visibly breaks once a frame resize crosses over which axis is
+  covering-scale's limiting dimension — a first round of manual/scripted
+  testing happened to only resize along the already-limiting axis and missed
+  it entirely. Caught live in the browser (shrinking/growing across that
+  crossover point and watching the static image visibly zoom when it
+  shouldn't), not by code review — a reminder that the export path and the
+  live-render path each independently apply this substitution rather than
+  sharing one "effective state" helper, so both need checking whenever this
+  area changes.
 - Tests: Vitest per package. `kiri-react`'s suite mounts via `react-dom/client`
   + `act` from `react` (not `react-dom/test-utils`, which is deprecated); set
   `globalThis.IS_REACT_ACT_ENVIRONMENT = true` to avoid act() warnings.

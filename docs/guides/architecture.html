@@ -60,6 +60,33 @@
   <code>height</code> option), the radius is scaled proportionally so a
   larger or smaller export still looks the same shape.</p>
 
+  <h2>Movable frame mode</h2>
+  <p><code>movableFrame: true</code> inverts which element is interactive:
+  the image is fixed at load — no pan, no zoom — and dragging or the arrow
+  keys move the <em>frame</em> over it instead, via <code>setFramePosition()</code>.
+  Combined with <code>resizableFrame</code>, its corner handles resize the
+  frame too, capped at the image's own bounds instead of growing the image
+  to compensate. The stage itself also stays pinned to the fixed image's own
+  size in this mode, rather than following the frame the way it normally
+  does — letting the stage shrink along with the frame would clip the
+  (unchanged, still full-size) image down to whatever's left, which visually
+  reads as the picture itself shrinking even though its actual rendered size
+  never changes.</p>
+  <p>Built by reusing the existing offset/frame-clamp geometry rather than
+  duplicating it: exporting/<code>getCropRegion()</code> substitute
+  <code>offset = -framePosition</code> (a moved frame and an oppositely-moved
+  image describe identical relative geometry) and a <code>zoom</code> value
+  that cancels the cover-scale calculation's dependency on the frame's
+  <em>current</em> size back out to the scale frozen at load — otherwise
+  resizing the frame after load would silently rescale the crop math along
+  with it. The live-preview render needs the identical frozen-scale
+  substitution independently, and <code>rotate()</code> needs it a third
+  time (carrying the frozen scale forward across rotations, rather than
+  re-deriving it from whatever the frame's current size happens to be) —
+  three separate call sites that each have to apply the same fix rather than
+  one shared helper, since each reaches the underlying geometry functions
+  through a different path.</p>
+
   <h2>Zoom clamping</h2>
   <p>Zoom is always clamped so the image can never be smaller than the
   frame — there's no option to disable this. The clamp math lives entirely

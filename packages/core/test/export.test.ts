@@ -13,7 +13,15 @@ const baseFilters = {
 };
 
 function state(overrides: Partial<KiriState>): KiriState {
-  return { zoom: 1, offset: { x: 0, y: 0 }, rotation: 0, flip: noFlip, filters: baseFilters, ...overrides };
+  return {
+    zoom: 1,
+    offset: { x: 0, y: 0 },
+    rotation: 0,
+    flip: noFlip,
+    filters: baseFilters,
+    framePosition: { x: 0, y: 0 },
+    ...overrides,
+  };
 }
 
 describe("computeCropRegion", () => {
@@ -94,6 +102,7 @@ describe("exportCrop option validation", () => {
       grayscale: false,
       sepia: false,
     },
+    framePosition: { x: 0, y: 0 },
   };
 
   it("warns and falls back on an invalid export type", async () => {

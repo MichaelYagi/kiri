@@ -51,8 +51,22 @@ export interface OrientationTransform {
  * Maps an EXIF orientation value to the rotation + horizontal-flip pair that
  * normalizes it. A vertical flip is never needed on its own: orientation 4
  * (mirror vertical) is expressed as rotate(180) + flip horizontal, which is
- * mathematically equivalent and matches Kiri's transform order (flip is
- * applied before rotation, so this composes correctly).
+ * mathematically equivalent.
+ *
+ * Rotation and flip don't commute, so which rotation value is paired with
+ * `flipHorizontal: true` depends on Kiri's actual render order: rotation is
+ * applied first, then flip mirrors the already-rotated result (see
+ * stage.ts's `applyTransform()`). That's why orientations 5 and 7 use `270`/
+ * `90` here rather than the more "obvious" `90`/`270` — reflections invert
+ * the effective rotation direction (`flip · rotate(θ) = rotate(-θ) · flip`),
+ * so producing the correct final image under this render order needs the
+ * negated angle. Orientations 2/3/4/6/8 are unaffected: 2 and 4 have no
+ * rotation-order ambiguity (0° and 180° are their own negation mod 360), and
+ * 3/6/8 have no flip at all. Verified directly (not just by this algebra) —
+ * confirmed in a real browser that `rotate(270) + flipHorizontal` under the
+ * current render order reproduces the exact same pixels as
+ * `rotate(90) + flipHorizontal` did under the old (flip-before-rotate) order,
+ * and vice versa.
  */
 export function orientationToTransform(orientation: number): OrientationTransform {
   switch (orientation) {
@@ -63,11 +77,11 @@ export function orientationToTransform(orientation: number): OrientationTransfor
     case 4:
       return { rotation: 180, flipHorizontal: true };
     case 5:
-      return { rotation: 90, flipHorizontal: true };
+      return { rotation: 270, flipHorizontal: true };
     case 6:
       return { rotation: 90, flipHorizontal: false };
     case 7:
-      return { rotation: 270, flipHorizontal: true };
+      return { rotation: 90, flipHorizontal: true };
     case 8:
       return { rotation: 270, flipHorizontal: false };
     default:

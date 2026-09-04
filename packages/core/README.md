@@ -18,6 +18,8 @@ A dependency-free TypeScript library for interactive image cropping in the brows
 - **Automatic EXIF orientation correction** on load
 - **Resizable frame**, four independent corner handles, with an optional
   `lockAspectRatio` to keep a fixed ratio while resizing
+- **`movableFrame`** — invert the interaction model: freeze the image and
+  drag/resize the frame over it instead of panning/zooming the image
 - **`setOffset()`/`reset()`** for programmatic panning and reverting to the
   post-`load()` state
 - **`getCropRegion()`** — the crop mapped back to the original image's own
@@ -79,7 +81,7 @@ an interactive playground, and the full API reference.
 
 ## Status
 
-**`0.1.0-alpha.9`** — see [CHANGELOG.md](./CHANGELOG.md)
+**`0.1.0-alpha.10`** — see [CHANGELOG.md](./CHANGELOG.md)
 for what's in it. Core publishes to npm automatically on version tags via
 GitHub Actions; `kiri-react`/`kiri-vue` aren't published yet. The public API
 is expected to be mostly stable but may still change before a `0.1.0`

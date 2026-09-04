@@ -13,9 +13,9 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>The full mutable state of a <code>Kiri</code> instance, as returned by <code>getState()</code>.</p>
 </div></section>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">KiriState</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#zoom">zoom</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#offset">offset</a><span class="tsd-signature-symbol">:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rotation">rotation</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#flip">flip</a><span class="tsd-signature-symbol">:</span> <a href="Flip.html" class="tsd-signature-type tsd-kind-interface">Flip</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#filters">filters</a><span class="tsd-signature-symbol">:</span> <a href="Filters.html" class="tsd-signature-type tsd-kind-interface">Filters</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">KiriState</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#zoom">zoom</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#offset">offset</a><span class="tsd-signature-symbol">:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rotation">rotation</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#flip">flip</a><span class="tsd-signature-symbol">:</span> <a href="Flip.html" class="tsd-signature-type tsd-kind-interface">Flip</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#filters">filters</a><span class="tsd-signature-symbol">:</span> <a href="Filters.html" class="tsd-signature-type tsd-kind-interface">Filters</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#frameposition">framePosition</a><span class="tsd-signature-symbol">:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/types.ts#L92">types.ts:92</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L104">types.ts:104</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -28,6 +28,7 @@
 <a href="#rotation" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>rotation</span></a>
 <a href="#flip" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>flip</span></a>
 <a href="#filters" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>filters</span></a>
+<a href="#frameposition" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>frame<wbr/>Position</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
@@ -36,27 +37,36 @@
 <h3 class="tsd-anchor-link" id="zoom"><span>zoom</span><a href="#zoom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">zoom</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/types.ts#L93">types.ts:93</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L105">types.ts:105</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="offset"><span>offset</span><a href="#offset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">offset</span><span class="tsd-signature-symbol">:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/types.ts#L94">types.ts:94</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L106">types.ts:106</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rotation"><span>rotation</span><a href="#rotation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rotation</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/types.ts#L95">types.ts:95</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L107">types.ts:107</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="flip"><span>flip</span><a href="#flip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">flip</span><span class="tsd-signature-symbol">:</span> <a href="Flip.html" class="tsd-signature-type tsd-kind-interface">Flip</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/types.ts#L96">types.ts:96</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L108">types.ts:108</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filters"><span>filters</span><a href="#filters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">filters</span><span class="tsd-signature-symbol">:</span> <a href="Filters.html" class="tsd-signature-type tsd-kind-interface">Filters</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/1c5a30cbbc07e0098ed4a030343432003ac99636/packages/core/src/types.ts#L97">types.ts:97</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L109">types.ts:109</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="frameposition"><span>frame<wbr/>Position</span><a href="#frameposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">framePosition</span><span class="tsd-signature-symbol">:</span> <a href="Offset.html" class="tsd-signature-type tsd-kind-interface">Offset</a></div>
+<div class="tsd-comment tsd-typography"><p>The frame's position, offset from stage center. Only meaningful when
+<code>movableFrame: true</code> — always <code>{ x: 0, y: 0 }</code> otherwise, since the
+frame stays centered in the default (image pans/zooms) mode.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/MichaelYagi/kiri/blob/de25a7c906482497aeb297d9eb9e409c0cad2056/packages/core/src/types.ts#L115">types.ts:115</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -72,7 +82,7 @@
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#zoom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>zoom</span></a><a href="#offset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>offset</span></a><a href="#rotation"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>rotation</span></a><a href="#flip"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>flip</span></a><a href="#filters"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>filters</span></a></div></details></div></details></div>
+<div><a href="#zoom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>zoom</span></a><a href="#offset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>offset</span></a><a href="#rotation"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>rotation</span></a><a href="#flip"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>flip</span></a><a href="#filters"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>filters</span></a><a href="#frameposition"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>frame<wbr/>Position</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="../index.html" class="tsd-nav-link">Guides</a><a href="../playground/index.html" class="tsd-nav-link">Playground</a></nav>
 <nav class="tsd-navigation"><a href="../index.html">Kiri API reference</a>

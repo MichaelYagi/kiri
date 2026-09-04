@@ -3,6 +3,24 @@
 All notable changes to this project are documented here. Versions apply to
 all three packages (`@michaelyagi/kiri`, `kiri-react`, `kiri-vue`) in lockstep.
 
+## 0.1.0-alpha.10
+
+- New `movableFrame` option (default `false`). Inverts the interaction
+  model: the image is fixed at load — no pan, no zoom (`setZoom()`/
+  `setOffset()` become no-ops) — and dragging or the arrow keys move the
+  *frame* over it instead, via a new `setFramePosition()` method and
+  `state.framePosition` field. Combine with `resizableFrame` to also resize
+  the frame in place, clamped to the image's own bounds rather than growing
+  the image to compensate. React/Vue wrapper props need no changes beyond
+  the pass-through, same as prior boolean options.
+- **Fix:** `flipHorizontal()`/`flipVertical()` now always mirror what's
+  currently displayed on screen, regardless of the current rotation. They
+  previously mirrored the image's own pre-rotation axes instead, so e.g.
+  after a 180° rotation, "flip horizontal" visually behaved like a vertical
+  flip. Also corrects EXIF-orientation-based auto-rotation for orientations
+  5 and 7 (the two that combine rotation and flip), which relied on the same
+  composition order.
+
 ## 0.1.0-alpha.9
 
 - New `filters.sharpness` option, alongside brightness/contrast/saturation

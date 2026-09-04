@@ -273,6 +273,7 @@ describe("Kiri", () => {
           grayscale: false,
           sepia: false,
         },
+        framePosition: { x: 0, y: 0 },
       });
     });
 

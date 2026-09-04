@@ -66,6 +66,18 @@ export interface KiriOptions {
    * instead of resizing width/height independently. Default `false`.
    */
   lockAspectRatio?: boolean;
+  /**
+   * Inverts which element is interactive. By default the image pans/zooms
+   * while the frame stays fixed. When `movableFrame` is `true`, the image
+   * is displayed at a fixed size and never pans or zooms — instead,
+   * dragging (or arrow keys) moves the *frame* around the static image, and
+   * (combine with `resizableFrame`) its corner handles resize it, clamped
+   * to the image's own bounds. `setZoom()`/`setOffset()` become no-ops in
+   * this mode (nothing to pan/zoom); use `setFramePosition()` instead.
+   * `rotate()`/flip still work — they transform the whole static image in
+   * place. Default `false`.
+   */
+  movableFrame?: boolean;
   /** `"ctrl"` requires holding Ctrl while scrolling to zoom. Default `true`. */
   mouseWheelZoom?: boolean | "ctrl";
   /** Corrects rotation + horizontal flip from EXIF data on `File`/`Blob` sources. Default `true`. */
@@ -95,13 +107,26 @@ export interface KiriState {
   rotation: number;
   flip: Flip;
   filters: Filters;
+  /**
+   * The frame's position, offset from stage center. Only meaningful when
+   * `movableFrame: true` — always `{ x: 0, y: 0 }` otherwise, since the
+   * frame stays centered in the default (image pans/zooms) mode.
+   */
+  framePosition: Offset;
 }
 
 /** Options for `load()`. */
 export interface LoadOptions {
-  /** Clamped to `[minZoom, maxZoom]`. Default `minZoom`. */
+  /**
+   * Clamped to `[minZoom, maxZoom]`. Default `minZoom`. Ignored when
+   * `movableFrame: true` — the image always renders at its fixed size from
+   * the first frame, same as `setZoom()` being a no-op in that mode.
+   */
   zoom?: number;
-  /** Clamped so the frame stays covered by the image. Default `{ x: 0, y: 0 }`. */
+  /**
+   * Clamped so the frame stays covered by the image. Default `{ x: 0, y: 0 }`.
+   * Ignored when `movableFrame: true`, same as `zoom` above.
+   */
   offset?: Offset;
   /** Degrees, snapped to the nearest 90°. Default `0`. */
   rotation?: number;
@@ -147,9 +172,13 @@ export type ExportResult = string | Blob | HTMLCanvasElement;
  * unrotated, unflipped* source image's own pixel coordinates — for sending
  * to a server that will crop the full-resolution original itself, instead
  * of uploading a client-re-encoded image. `rotation`/`flip` are included so
- * the server can reproduce the full transform (flip, then rotate, then crop
- * to `x`/`y`/`width`/`height`) and get an identical result to what the user
- * saw. See `getCropRegion()`.
+ * the server can reproduce the full transform: crop to `x`/`y`/`width`/
+ * `height` first (that rectangle is already expressed in the original,
+ * untransformed image's own coordinates), then rotate, then flip, in that
+ * order — matching how Kiri itself composes them (rotation first, flip
+ * applied to the already-rotated result, so flip always mirrors what was
+ * *displayed*, not the original image's own pre-rotation axes) — and get an
+ * identical result to what the user saw. See `getCropRegion()`.
  */
 export interface CropRegion {
   x: number;

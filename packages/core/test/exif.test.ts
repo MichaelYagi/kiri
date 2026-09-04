@@ -62,9 +62,9 @@ describe("orientationToTransform", () => {
     expect(orientationToTransform(2)).toEqual({ rotation: 0, flipHorizontal: true });
     expect(orientationToTransform(3)).toEqual({ rotation: 180, flipHorizontal: false });
     expect(orientationToTransform(4)).toEqual({ rotation: 180, flipHorizontal: true });
-    expect(orientationToTransform(5)).toEqual({ rotation: 90, flipHorizontal: true });
+    expect(orientationToTransform(5)).toEqual({ rotation: 270, flipHorizontal: true });
     expect(orientationToTransform(6)).toEqual({ rotation: 90, flipHorizontal: false });
-    expect(orientationToTransform(7)).toEqual({ rotation: 270, flipHorizontal: true });
+    expect(orientationToTransform(7)).toEqual({ rotation: 90, flipHorizontal: true });
     expect(orientationToTransform(8)).toEqual({ rotation: 270, flipHorizontal: false });
   });
 });

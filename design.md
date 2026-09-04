@@ -29,8 +29,10 @@ library — no code, naming, or documentation from any other project is reused.
   with zero CSS); `autoSizeStage: false` reverts to sizing via the
   container's own CSS instead (100% width/height), for embedding in a
   layout where the consumer wants to control the stage's size directly.
-- **Frame** — the fixed selection window inside the stage (the region that gets
-  exported). Shape: `"rectangle"`, `"circle"`, or `"rounded-rectangle"`.
+- **Frame** — the selection window inside the stage (the region that gets
+  exported); normally fixed while the image pans/zooms behind it, though
+  `movableFrame: true` inverts that — see "Movable frame mode" under
+  Extended features. Shape: `"rectangle"`, `"circle"`, or `"rounded-rectangle"`.
   `"circle"`/`"rounded-rectangle"` aren't just a visual overlay in the
   browser — `export()`/`upload()` actually clip the output to match
   (transparent corners on PNG/WebP; JPEG has no alpha channel, so either
@@ -70,7 +72,7 @@ const cropper = new Kiri(containerElement, {
 await cropper.load(file, { zoom: 1, offset: { x: 0, y: 0 }, rotation: 0 });
 
 // Read current state
-cropper.getState(); // { zoom, offset: {x,y}, rotation }
+cropper.getState(); // { zoom, offset: {x,y}, rotation, framePosition: {x,y} }
 
 // Mutate programmatically
 cropper.setZoom(2);
@@ -78,6 +80,7 @@ cropper.rotate(90); // relative, degrees, snapped to 90° steps
 cropper.flipHorizontal(); // toggles
 cropper.flipVertical(); // toggles
 cropper.setFrameSize(300, 300); // if resizableFrame is true
+cropper.setFramePosition({ x: 0, y: 0 }); // if movableFrame is true
 cropper.setFilters({ brightness: 1.2, contrast: 1, saturation: 1, grayscale: false, sepia: false });
 
 // Export
@@ -104,13 +107,14 @@ cropper.destroy();
 | Method | Returns | Description |
 |---|---|---|
 | `load(source, options?)` | `Promise<void>` | Loads a `File`, `Blob`, or URL string. See the `load()` options table below. |
-| `getState()` | `KiriState` | Current `{ zoom, offset, rotation, flip, filters }` snapshot (a copy — mutating it has no effect). |
-| `setZoom(zoom)` | `void` | Absolute zoom, clamped to `[minZoom, maxZoom]`. |
-| `setOffset(offset)` | `void` | Absolute pan (`{ x, y }`), clamped so the frame stays covered by the rendered image — same clamping as a drag. |
-| `reset()` | `void` | Reverts zoom/offset/rotation/flip/filters to whatever they were right after `load()` resolved. No-op before anything's loaded. |
+| `getState()` | `KiriState` | Current `{ zoom, offset, rotation, flip, filters, framePosition }` snapshot (a copy — mutating it has no effect). `framePosition` is only meaningful when `movableFrame: true` (always `{0,0}` otherwise). |
+| `setZoom(zoom)` | `void` | Absolute zoom, clamped to `[minZoom, maxZoom]`. No-op if `movableFrame: true` (nothing to zoom). |
+| `setOffset(offset)` | `void` | Absolute pan (`{ x, y }`), clamped so the frame stays covered by the rendered image — same clamping as a drag. No-op if `movableFrame: true`. |
+| `reset()` | `void` | Reverts zoom/offset/rotation/flip/filters/framePosition to whatever they were right after `load()` resolved. No-op before anything's loaded. |
 | `rotate(deltaDeg)` | `void` | Relative rotation, snapped to the nearest 90°. No-op if `rotatable: false`. |
 | `flipHorizontal()` / `flipVertical()` | `void` | Toggles. No-op if `flippable: false`. |
-| `setFrameSize(width, height)` | `void` | Resizes the frame (and the stage too, if `autoSizeStage`). Clamped to a 20px minimum per axis. |
+| `setFrameSize(width, height)` | `void` | Resizes the frame (and the stage too, if `autoSizeStage`). Clamped to a 20px minimum per axis; also capped at the fixed image's own size when `movableFrame: true`, since there's no auto-zoom to grow into. |
+| `setFramePosition(position)` | `void` | Only meaningful when `movableFrame: true` (otherwise a no-op). Absolute frame position (`{ x, y }`) over the fixed image, clamped so the frame stays fully within the image's bounds. |
 | `setFilters(partial)` | `void` | Merges into the current filters; numeric values clamped to `>= 0`. |
 | `export(options?)` | `Promise<ExportResult>` | Renders the current crop. See the `export()` options table below. |
 | `getCropRegion()` | `CropRegion` | `{ x, y, width, height, rotation, flip }` — the crop selection in the *original, unrotated, unflipped* source image's own pixel coordinates, for a server to crop the full-resolution original itself. |
@@ -134,6 +138,7 @@ Every constructor option, its type, valid values, and default.
 | `flippable` | boolean | `true`, `false` | `true` |
 | `resizableFrame` | boolean | `true`, `false` | `false` |
 | `lockAspectRatio` | boolean | `true`, `false` | `false` |
+| `movableFrame` | boolean | `true`, `false` | `false` |
 | `mouseWheelZoom` | boolean \| string | `true`, `false`, `"ctrl"` (require Ctrl+wheel) | `true` |
 | `useExifOrientation` | boolean | `true`, `false` | `true` |
 | `autoSizeStage` | boolean | `true`, `false` | `true` |
@@ -203,7 +208,14 @@ default rather than silently misbehaving. `resolveEnumOption()` in
   default `"bottom"` — purely a placement choice, identical behavior in every
   position, bidirectionally synced with wheel/pinch/`setZoom()`)
 - Rotate in 90° increments
-- Flip horizontally/vertically (independent of rotation)
+- Flip horizontally/vertically — always mirrors what's currently displayed
+  on screen (screen-space), not the image's own pre-rotation axes, so
+  "flip horizontal" reads as a horizontal mirror no matter the current
+  rotation. Implemented by applying flip *after* rotation in the render
+  order (`stage.ts`'s `applyTransform()`, `export.ts`'s
+  `renderCropToCanvas()`) rather than before — reflections don't commute
+  with rotation, so this is a real behavioral choice, not just an
+  implementation detail; see those files' comments for the composition math.
 - Optional resizable frame (drag handles)
 - The stage auto-sizes to the frame's dimensions by default — no CSS
   required for a correctly-sized widget (`autoSizeStage: false` opts back
@@ -341,6 +353,48 @@ changing one destroys and reconstructs the underlying `Kiri` instance and
 automatically re-`load()`s whatever source was last passed to it — a
 consumer re-rendering with new props doesn't have to manually reload the
 image itself.
+
+### Movable frame mode
+
+`movableFrame: boolean` (default `false`) inverts which element is
+interactive: the image is fixed at load — no pan, no zoom; `setZoom()`/
+`setOffset()` become no-ops — and dragging (or arrow keys) moves the *frame*
+around it instead. Combined with `resizableFrame`, its corner handles resize
+it too, clamped to the image's own bounds rather than growing the image to
+compensate (there's no auto-zoom left to absorb the difference).
+`cropper.setFramePosition({x, y})` moves it programmatically, and
+`getState().framePosition` reports the current position (always `{0, 0}`
+when `movableFrame` is off). `rotate()`/flip still work — they transform the
+whole static image in place, re-freezing its size for the new orientation.
+
+Built by reusing the existing offset/frame geometry math rather than
+rewriting it, via two substitutions applied only where
+`computeCropRegion()`/`renderCropToCanvas()` are called (export/
+`getCropRegion()`):
+- `offset = -framePosition` — "the frame moved right by d" and "the image
+  moved left by d" describe identical relative geometry, so the existing
+  offset-based crop math handles a moved frame completely unmodified.
+- A substituted `zoom` value that cancels `computeCoverScale()`'s dependency
+  on the *current* frame size back out to the scale frozen at load
+  (`fixedImageSize`) — otherwise resizing the frame after load would
+  silently rescale the crop math along with it.
+
+The live-preview render (`commitState()`) needed the identical frozen-scale
+substitution independently — it derives the image's on-screen scale directly
+from `fixedImageSize` in this mode rather than `computeCoverScale(natural,
+currentFrame, rotation) * zoom`. An earlier version only fixed the export
+path and briefly shipped with the live-render path still using the
+current-frame-size formula; manual testing didn't catch it because it only
+resized along whichever frame axis already happened to be covering-scale's
+limiting dimension, which never tripped the bug — it only appears once a
+resize crosses over which axis is limiting. Caught via live browser testing
+(shrinking/growing across that crossover point and watching the image
+visibly resize when it shouldn't), not by review.
+
+`clampOffset()` (used to clamp the frame's position within the fixed image)
+needed no changes at all — its clamp range is already symmetric, so "clamp
+the frame's position within the image" and "clamp the image's offset within
+the frame" are the same math with no sign flip required.
 
 ## Project structure (monorepo)
 

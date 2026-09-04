@@ -60,6 +60,12 @@
         <p class="pg-hint">Only matters while Resizable is on — dragging a
         corner handle keeps the frame's width:height ratio fixed instead of
         letting each axis resize independently.</p>
+        <div class="pg-row"><label for="movableFrame">movableFrame</label><input id="movableFrame" type="checkbox" /></div>
+        <p class="pg-hint">Inverts the interaction model: the image is fixed
+        (no pan/zoom — the Center button and mouse wheel/pinch zoom stop
+        doing anything) and dragging or using the arrow keys moves the frame
+        over it instead. Combine with Resizable to also resize the frame in
+        place.</p>
       </fieldset>
 
       <fieldset>
@@ -129,7 +135,7 @@
 <script src="../dist/kiri.min.js"></script>
 <script>
   const constructorIds = [
-    "shape", "frameWidth", "frameHeight", "cornerRadius", "resizableFrame", "lockAspectRatio",
+    "shape", "frameWidth", "frameHeight", "cornerRadius", "resizableFrame", "lockAspectRatio", "movableFrame",
     "minZoom", "maxZoom", "mouseWheelZoom", "showZoomer", "zoomerPosition",
     "rotatable", "flippable", "useExifOrientation", "autoSizeStage",
   ];
@@ -159,6 +165,7 @@
       flippable: el("flippable").checked,
       resizableFrame: el("resizableFrame").checked,
       lockAspectRatio: el("lockAspectRatio").checked,
+      movableFrame: el("movableFrame").checked,
       mouseWheelZoom: readMouseWheelZoom(),
       useExifOrientation: el("useExifOrientation").checked,
       autoSizeStage: el("autoSizeStage").checked,
@@ -187,6 +194,9 @@
     const flipDisplay = el("flippable").checked ? "" : "none";
     el("flip-h").style.display = flipDisplay;
     el("flip-v").style.display = flipDisplay;
+    // setOffset() is a no-op while movableFrame is on (nothing to pan) —
+    // hide the button rather than let it silently do nothing.
+    el("center").style.display = el("movableFrame").checked ? "none" : "";
   }
 
   async function rebuild() {
